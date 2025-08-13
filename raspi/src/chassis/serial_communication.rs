@@ -40,7 +40,7 @@ impl SerialCommunicator {
             .write_all(data)
             .expect("Failed to write message to port.");
 
-        println!("Sending to port {} data {:?}", self.serial_port, data);
+        println!("Sending to port {:?} data {:?}", self.serial_port, data);
 
         let _ = self.serial_port.flush();
     }
