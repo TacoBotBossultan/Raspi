@@ -14,7 +14,7 @@ impl SerialCommunicator {
             serial_port: serialport::new(serial_port_path, 115200)
                 .timeout(time::Duration::from_secs(4000))
                 .open()
-                .unwrap_or_else(|_| panic!("Failed to open port : {serial_port_path:#?}")),
+                .unwrap_or_else(|_| panic!("Nu pot sa deschid portu : {serial_port_path:#?}")),
             message_length: 16,
         }
     }
@@ -35,7 +35,7 @@ impl SerialCommunicator {
 
         self.serial_port
             .write_all(data)
-            .expect("Failed to write message to port.");
+            .expect("Nu pot sa scriu mesaju la port");
 
         println!("Sending to port {:?} data {:?}", self.serial_port, data);
 

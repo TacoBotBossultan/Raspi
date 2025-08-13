@@ -17,7 +17,6 @@ impl DrivESP {
             serial_communicator: SerialCommunicator::new(tty_address),
         }
     }
-
     pub fn send_get_position_command(&mut self) -> Result<Position, String> {
         let get_position_command =
             SerialCommand::GiveMePosition(serial_commands::GiveMePosition::new());
@@ -38,7 +37,6 @@ impl DrivESP {
             },
         }
     }
-
     pub fn send_set_position_command(&mut self, position: Position) {
         let set_position_command = SerialCommand::SetPosition(serial_commands::SetPosition::new(
             position.x_coordinate,
@@ -49,7 +47,6 @@ impl DrivESP {
         self.serial_communicator
             .send_command_without_response(&set_position_command);
     }
-
     pub fn send_set_speeds_command(
         &mut self,
         front_right_motor: EngineOrder,

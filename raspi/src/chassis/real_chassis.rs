@@ -17,7 +17,8 @@ use super::chassis_traits::{
 };
 
 static PRE_APPEND_STR: &str = "[Real-Chassis]";
-static CONFIG_PATH: &str = "/home/pi/Raspi_Official/raspi/src/config.toml";
+static CONFIG_PATH: &str = "./config.toml";
+static SCRIPT_PATH: &str = "./chassis/id_identifier.sh";
 
 #[derive(Debug)]
 pub struct RealChassis {
@@ -123,11 +124,16 @@ impl RealChassis {
     fn get_esps_ttys() -> (String, String) {
         let output = Command::new("sh")
             .arg("-c")
-            .arg("./id_identifier.sh")
+            .arg(SCRIPT_PATH)
             .output()
             .expect("Failed to execute script");
 
         let output_str = String::from_utf8_lossy(&output.stdout);
+
+        println!(
+            "Current directory: {}",
+            std::env::current_dir().unwrap().display()
+        );
 
         println!("OUtput string : {output_str:#?}");
         let mut tty_map = HashMap::new();
