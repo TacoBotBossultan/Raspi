@@ -1,6 +1,9 @@
-use std::{collections::HashMap, fs, path::Path, process::Command};
-
-use crossterm::terminal::disable_raw_mode;
+use std::{
+    collections::HashMap,
+    fs::{self},
+    path::Path,
+    process::Command,
+};
 
 use crate::chassis::{
     config::Config,
@@ -112,7 +115,7 @@ impl RealChassis {
         Self {
             current_motor_speeds: init_speeds,
             utiliesp: UtilitiESP::new(utility_tty),
-            drivesp: DrivESP::new(drive_tty),
+            drivesp: DrivESP::new(&drive_tty),
         }
     }
 
@@ -125,7 +128,7 @@ impl RealChassis {
             .expect("Failed to execute script");
 
         let output_str = String::from_utf8_lossy(&output.stdout);
-        let mut tty_map = HashMap::new::<String, String>();
+        let mut tty_map = HashMap::new();
 
         for line in output_str.lines() {
             let parts: Vec<&str> = line.split(" - ").collect();
@@ -133,7 +136,7 @@ impl RealChassis {
                 tty_map.insert(parts[1].to_string(), parts[0].to_string());
             }
         }
-        println!("{:?}", tty_map);
+        println!("{PRE_APPEND_STR} {:?}", tty_map);
 
         let config = Self::get_esps_proccessor_names_from_config(CONFIG_PATH);
 
@@ -145,7 +148,13 @@ impl RealChassis {
                 config.utilitiesp_proccessor_id,
                 config.drivesp_proccessor_id,
             ),
-            Err(()) => ("CV default idk", "alt cv default idk"),
+            Err(err_msg) => {
+                println!("{PRE_APPEND_STR} {}", err_msg);
+                (
+                    "CV default idk".to_string(),
+                    "alt cv default idk".to_string(),
+                )
+            }
         };
 
         let utility_tty = tty_map
@@ -157,18 +166,25 @@ impl RealChassis {
             .expect("DrivESP not found")
             .clone();
 
-        println!("{},{}", utility_tty, drive_tty);
+        println!("{PRE_APPEND_STR} {},{}", utility_tty, drive_tty);
 
         (utility_tty, drive_tty)
     }
 
-    fn get_esps_proccessor_names_from_config(path: &str) -> Result<Config, ()> {
+    fn get_esps_proccessor_names_from_config(path: &str) -> Result<Config, String> {
         let path_obj = Path::new(path);
         if path_obj.exists() {
-            let contents = fs::read_to_string(path_obj)?;
-            Ok(toml::from_str(&contents)?);
+            let contents = match fs::read_to_string(path_obj) {
+                Ok(contents) => contents,
+                Err(err) => return Err(err.to_string()),
+            };
+            let config: Config = match toml::from_str(&contents) {
+                Ok(conf) => conf,
+                Err(err) => return Err(err.to_string()),
+            };
+            Ok(config)
         } else {
-            Err(())
+            Err(format!("Nici nu exista {CONFIG_PATH:#?}"))
         }
     }
 }

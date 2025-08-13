@@ -67,7 +67,7 @@ impl NavigationComputer {
                 *self.current_position.lock().await = match (*chassis_lock).get_position() {
                     Ok(pos) => pos,
                     Err(err) => {
-                        println!(err);
+                        println!("{}", err);
                         continue;
                     }
                 };

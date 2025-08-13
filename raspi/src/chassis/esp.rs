@@ -8,20 +8,14 @@ use super::{
 
 #[derive(Debug)]
 pub struct DrivESP {
-    tty_address: String,
     serial_communicator: SerialCommunicator,
 }
 
 impl DrivESP {
-    pub fn new(tty_address: String) -> Self {
+    pub fn new(tty_address: &str) -> Self {
         DrivESP {
-            tty_address,
-            serial_communicator: SerialCommunicator::new(&tty_address),
+            serial_communicator: SerialCommunicator::new(tty_address),
         }
-    }
-
-    pub fn get_tty_address(&self) -> String {
-        self.tty_address.clone()
     }
 
     pub fn send_get_position_command(&mut self) -> Result<Position, String> {
@@ -31,16 +25,16 @@ impl DrivESP {
         let serial_response = self.serial_communicator.send_command(&get_position_command);
 
         match serial_response {
-            SerialResponse::Yes => return Err("No position found".to_string()),
-            SerialResponse::No => return Err("No position found".to_string()),
+            SerialResponse::Yes => Err("No position found".to_string()),
+            SerialResponse::No => Err("No position found".to_string()),
             SerialResponse::HavePosition(have_position_response) => match Position::create(
                 None,
                 have_position_response.x,
                 have_position_response.y,
                 have_position_response.theta,
             ) {
-                Ok(position) => return Ok(position),
-                Err(e) => return Err(e),
+                Ok(position) => Ok(position),
+                Err(e) => Err(e),
             },
         }
     }
@@ -100,20 +94,12 @@ impl UtilitiESP {
     pub fn send_btn_pressed_command(&mut self) -> bool {
         let btn_pressed_command = SerialCommand::BtnPressed;
         let serial_response = self.serial_communicator.send_command(&btn_pressed_command);
-        if let SerialResponse::Yes = serial_response {
-            return true;
-        } else {
-            return false;
-        }
+        matches!(serial_response, SerialResponse::Yes)
     }
     pub fn send_reached_lane_command(&mut self) -> bool {
         let reached_lane_command = SerialCommand::ReachedLane;
         let serial_response = self.serial_communicator.send_command(&reached_lane_command);
-        if let SerialResponse::Yes = serial_response {
-            return true;
-        } else {
-            return false;
-        }
+        matches!(serial_response, SerialResponse::Yes)
     }
     pub fn send_push_rack_command(&mut self) {
         let push_rack_command = SerialCommand::PushRack;
@@ -128,20 +114,12 @@ impl UtilitiESP {
     pub fn send_is_it_in_command(&mut self) -> bool {
         let is_it_in_command = SerialCommand::IsItIn;
         let serial_response = self.serial_communicator.send_command(&is_it_in_command);
-        if let SerialResponse::Yes = serial_response {
-            return true;
-        } else {
-            return false;
-        }
+        matches!(serial_response, SerialResponse::Yes)
     }
     pub fn send_is_it_out_command(&mut self) -> bool {
         let is_it_out_command = SerialCommand::IsItOut;
         let serial_response = self.serial_communicator.send_command(&is_it_out_command);
-        if let SerialResponse::Yes = serial_response {
-            return true;
-        } else {
-            return false;
-        }
+        matches!(serial_response, SerialResponse::Yes)
     }
     pub fn send_beer_me_command(&mut self) {
         let beer_me_command = SerialCommand::BeerMe;
