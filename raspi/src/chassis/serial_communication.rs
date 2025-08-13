@@ -67,3 +67,9 @@ impl SerialCommunicator {
         SerialResponse::try_from(read_buffer).expect("Response parsing failure.")
     }
 }
+
+impl Default for SerialCommunicator {
+    fn default() -> Self {
+        Self::new()
+    }
+}

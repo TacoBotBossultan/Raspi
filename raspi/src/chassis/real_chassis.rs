@@ -54,23 +54,23 @@ impl ChassisTraits for RealChassis {
         );
     }
 
-    fn get_position(&mut self) -> Position {
+    fn get_position(&mut self) -> Result<Position, String> {
         self.drivesp.send_get_position_command()
     }
 
-    fn insert_rack(&self) {
+    fn insert_rack(&mut self) {
         self.utiliesp.send_push_rack_command();
     }
 
-    fn retrieve_rack(&self) {
+    fn retrieve_rack(&mut self) {
         self.utiliesp.send_pull_rack_command();
     }
 
-    fn are_buttons_pressed(&self) -> bool {
+    fn are_buttons_pressed(&mut self) -> bool {
         self.utiliesp.send_btn_pressed_command()
     }
 
-    fn arrived_at_a_lane(&self) -> bool {
+    fn arrived_at_a_lane(&mut self) -> bool {
         self.utiliesp.send_reached_lane_command()
     }
 
@@ -78,23 +78,23 @@ impl ChassisTraits for RealChassis {
         self.drivesp.send_set_position_command(position);
     }
 
-    fn is_rack_inserted(&self) -> bool {
+    fn is_rack_inserted(&mut self) -> bool {
         self.utiliesp.send_is_it_in_command()
     }
 
-    fn is_rack_extracted(&self) -> bool {
+    fn is_rack_extracted(&mut self) -> bool {
         self.utiliesp.send_is_it_out_command()
     }
 
-    fn beer_me(&self) {
+    fn beer_me(&mut self) {
         self.utiliesp.send_beer_me_command();
     }
 
-    fn on_led(&self) {
+    fn on_led(&mut self) {
         self.utiliesp.send_on_led_command();
     }
 
-    fn off_led(&self) {
+    fn off_led(&mut self) {
         self.utiliesp.send_off_led_command();
     }
 }

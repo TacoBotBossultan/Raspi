@@ -38,6 +38,12 @@ impl GiveMePosition {
     }
 }
 
+impl Default for GiveMePosition {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SetSpeeds {
     pub fn new(
         front_right_motor: EngineOrder,
