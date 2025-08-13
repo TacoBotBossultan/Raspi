@@ -87,7 +87,13 @@ impl MissionController {
 
                     ActionType::TakePhoto => {
                         // TODO:ceva cu poza, underline inainte de photo pentru warning
+                        let chassis_lock = chassis.lock().await;
+                        chassis_lock.on_led();
+                        drop(chassis_lock);
                         let _photo = ElectricEye::take_photo();
+                        let chassis_lock = chassis.lock().await;
+                        chassis_lock.off_led();
+                        drop(chassis_lock);
                         self.async_logger
                             .out_print(format!("{PRE_APPEND_STR} si fac si-o poza"))
                             .await;
@@ -214,7 +220,7 @@ impl MissionController {
             navigation_computer.stop_moving().await;
             navigation_computer.stop().await;
             nav_computer_handle.await.unwrap();
-            let chassis_lock = chassis.lock().await;
+            let mut chassis_lock = chassis.lock().await;
             chassis_lock.stop_motors();
             chassis_lock.retrieve_rack();
             let mut is_dt_inserted = false;
@@ -230,12 +236,24 @@ impl MissionController {
         navigation_computer: &NavigationComputer,
         chassis: &Arc<sync::Mutex<RealChassis>>,
     ) -> bool {
+        let chassis_lock = chassis.lock().await;
+        chassis_lock.on_led();
+        drop(chassis_lock);
+
         let relevement = match ElectricEye::find_marker() {
             Ok(r) => r,
             Err(_) => {
+                let chassis_lock = chassis.lock().await;
+                chassis_lock.off_led();
+                drop(chassis_lock);
+
                 return false;
             }
         };
+
+        let chassis_lock = chassis.lock().await;
+        chassis_lock.off_led();
+        drop(chassis_lock);
 
         let mut chassis_lock: MutexGuard<'_, RealChassis>;
         navigation_computer.dock(relevement).await;
