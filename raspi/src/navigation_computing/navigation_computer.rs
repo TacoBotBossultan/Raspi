@@ -1,6 +1,7 @@
 use std::{io::stdout, sync::Arc, time::Duration};
 
 use crossterm::{cursor::MoveTo, execute, terminal::Clear};
+use pyo3::exceptions::PyEnvironmentError;
 use tokio::{
     spawn,
     sync::{self, Notify},
@@ -63,7 +64,14 @@ impl NavigationComputer {
             drop(chassis_lock);
             while keep_loop_going {
                 chassis_lock = chassis.lock().await;
-                *self.current_position.lock().await = (*chassis_lock).get_position();
+                *self.current_position.lock().await = match (*chassis_lock).get_position() {
+                    Ok(pos) => pos,
+                    Err(err) => {
+                        println!(err);
+                        continue;
+                    }
+                };
+
                 drop(chassis_lock);
                 let current_position = (*self.current_position.lock().await).clone();
                 let target_position = (*self.target_position.lock().await).clone();

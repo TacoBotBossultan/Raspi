@@ -16,7 +16,7 @@ impl DrivESP {
     pub fn new(tty_address: String) -> Self {
         DrivESP {
             tty_address,
-            serial_communicator: SerialCommunicator::new(),
+            serial_communicator: SerialCommunicator::new(&tty_address),
         }
     }
 
@@ -28,9 +28,7 @@ impl DrivESP {
         let get_position_command =
             SerialCommand::GiveMePosition(serial_commands::GiveMePosition::new());
 
-        let serial_response = self
-            .serial_communicator
-            .send_command(&self.tty_address, &get_position_command);
+        let serial_response = self.serial_communicator.send_command(&get_position_command);
 
         match serial_response {
             SerialResponse::Yes => return Err("No position found".to_string()),
@@ -55,7 +53,7 @@ impl DrivESP {
         ));
 
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &set_position_command);
+            .send_command_without_response(&set_position_command);
     }
 
     pub fn send_set_speeds_command(
@@ -73,43 +71,35 @@ impl DrivESP {
         ));
 
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &set_speeds_command);
+            .send_command_without_response(&set_speeds_command);
     }
 }
 
 #[derive(Debug)]
 pub struct UtilitiESP {
-    tty_address: String,
     serial_communicator: SerialCommunicator,
 }
 
 impl UtilitiESP {
     pub fn new(tty_address: String) -> Self {
         UtilitiESP {
-            tty_address,
-            serial_communicator: SerialCommunicator::new(),
+            serial_communicator: SerialCommunicator::new(&tty_address),
         }
-    }
-
-    pub fn get_tty_address(&self) -> String {
-        self.tty_address.clone()
     }
 
     pub fn send_on_led_command(&mut self) {
         let led_on_command = SerialCommand::OnLED;
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &led_on_command);
+            .send_command_without_response(&led_on_command);
     }
     pub fn send_off_led_command(&mut self) {
         let led_off_command = SerialCommand::OffLED;
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &led_off_command);
+            .send_command_without_response(&led_off_command);
     }
     pub fn send_btn_pressed_command(&mut self) -> bool {
         let btn_pressed_command = SerialCommand::BtnPressed;
-        let serial_response = self
-            .serial_communicator
-            .send_command(&self.tty_address, &btn_pressed_command);
+        let serial_response = self.serial_communicator.send_command(&btn_pressed_command);
         if let SerialResponse::Yes = serial_response {
             return true;
         } else {
@@ -118,9 +108,7 @@ impl UtilitiESP {
     }
     pub fn send_reached_lane_command(&mut self) -> bool {
         let reached_lane_command = SerialCommand::ReachedLane;
-        let serial_response = self
-            .serial_communicator
-            .send_command(&self.tty_address, &reached_lane_command);
+        let serial_response = self.serial_communicator.send_command(&reached_lane_command);
         if let SerialResponse::Yes = serial_response {
             return true;
         } else {
@@ -130,18 +118,16 @@ impl UtilitiESP {
     pub fn send_push_rack_command(&mut self) {
         let push_rack_command = SerialCommand::PushRack;
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &push_rack_command);
+            .send_command_without_response(&push_rack_command);
     }
     pub fn send_pull_rack_command(&mut self) {
         let pull_rack_command = SerialCommand::PullRack;
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &pull_rack_command);
+            .send_command_without_response(&pull_rack_command);
     }
     pub fn send_is_it_in_command(&mut self) -> bool {
         let is_it_in_command = SerialCommand::IsItIn;
-        let serial_response = self
-            .serial_communicator
-            .send_command(&self.tty_address, &is_it_in_command);
+        let serial_response = self.serial_communicator.send_command(&is_it_in_command);
         if let SerialResponse::Yes = serial_response {
             return true;
         } else {
@@ -150,9 +136,7 @@ impl UtilitiESP {
     }
     pub fn send_is_it_out_command(&mut self) -> bool {
         let is_it_out_command = SerialCommand::IsItOut;
-        let serial_response = self
-            .serial_communicator
-            .send_command(&self.tty_address, &is_it_out_command);
+        let serial_response = self.serial_communicator.send_command(&is_it_out_command);
         if let SerialResponse::Yes = serial_response {
             return true;
         } else {
@@ -162,6 +146,6 @@ impl UtilitiESP {
     pub fn send_beer_me_command(&mut self) {
         let beer_me_command = SerialCommand::BeerMe;
         self.serial_communicator
-            .send_command_without_response(&self.tty_address, &beer_me_command);
+            .send_command_without_response(&beer_me_command);
     }
 }

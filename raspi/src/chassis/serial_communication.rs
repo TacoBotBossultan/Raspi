@@ -27,7 +27,7 @@ impl SerialCommunicator {
         self.receive()
     }
 
-    pub fn send_command_without_response(&mut self, tty_path: &String, command: &SerialCommand) {
+    pub fn send_command_without_response(&mut self, command: &SerialCommand) {
         self.send(&command.serialize());
     }
 
@@ -65,11 +65,5 @@ impl SerialCommunicator {
         }
 
         SerialResponse::try_from(read_buffer).expect("Response parsing failure.")
-    }
-}
-
-impl Default for SerialCommunicator {
-    fn default() -> Self {
-        Self::new()
     }
 }
