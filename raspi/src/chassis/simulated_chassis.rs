@@ -73,7 +73,7 @@ impl ChassisTraits for SimulatedChassis {
         }
     }
 
-    fn get_position(&self) -> Position {
+    fn get_position(&mut self) -> Position {
         let curpos = self.current_position.clone();
 
         execute!(
@@ -106,7 +106,7 @@ impl ChassisTraits for SimulatedChassis {
         todo!()
     }
 
-    fn set_position(&self, position: Position) {
+    fn set_position(&mut self, position: Position) {
         todo!()
     }
 

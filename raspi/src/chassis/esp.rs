@@ -97,11 +97,19 @@ impl UtilitiESP {
 
     pub fn send_on_led_command(&self) {}
     pub fn send_off_led_command(&self) {}
-    pub fn send_btn_pressed_command(&self) -> bool {}
-    pub fn send_reached_lane_command(&self) -> bool {}
+    pub fn send_btn_pressed_command(&self) -> bool {
+        todo!()
+    }
+    pub fn send_reached_lane_command(&self) -> bool {
+        todo!()
+    }
     pub fn send_push_rack_command(&self) {}
     pub fn send_pull_rack_command(&self) {}
-    pub fn send_is_it_in_command(&self) -> bool {}
-    pub fn send_is_it_out_command(&self) -> bool {}
+    pub fn send_is_it_in_command(&self) -> bool {
+        todo!()
+    }
+    pub fn send_is_it_out_command(&self) -> bool {
+        todo!()
+    }
     pub fn send_beer_me_command(&self) {}
 }

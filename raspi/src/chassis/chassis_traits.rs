@@ -12,12 +12,12 @@ pub trait ChassisTraits: Debug {
         back_right_motor_speed: EngineOrder,
     );
     fn stop_motors(&mut self);
-    fn get_position(&self) -> Position;
+    fn get_position(&mut self) -> Position;
     fn insert_rack(&self);
     fn retrieve_rack(&self);
     fn are_buttons_pressed(&self) -> bool;
     fn arrived_at_a_lane(&self) -> bool;
-    fn set_position(&self, position: Position);
+    fn set_position(&mut self, position: Position);
     fn is_rack_inserted(&self) -> bool;
     fn is_rack_extracted(&self) -> bool;
     fn beer_me(&self);

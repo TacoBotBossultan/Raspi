@@ -48,7 +48,7 @@ impl ChassisTraits for RealChassis {
         );
     }
 
-    fn get_position(&self) -> Position {
+    fn get_position(&mut self) -> Position {
         self.drivesp.send_get_position_command()
     }
 
@@ -68,7 +68,7 @@ impl ChassisTraits for RealChassis {
         self.utiliesp.send_reached_lane_command()
     }
 
-    fn set_position(&self, position: Position) {
+    fn set_position(&mut self, position: Position) {
         self.drivesp.send_set_position_command(position);
     }
 
