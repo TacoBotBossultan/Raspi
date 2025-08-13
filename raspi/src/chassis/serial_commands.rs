@@ -29,6 +29,7 @@ pub enum SerialCommand {
     IsItOut,
     PullRack,
     GiveMePosition(GiveMePosition),
+    BeerMe,
 }
 
 impl GiveMePosition {
@@ -110,6 +111,7 @@ impl SerialCommand {
             SerialCommand::GiveMePosition(_) => {
                 bytes.push(FirmwareCommandType::GiveMePosition as u8);
             }
+            SerialCommand::BeerMe => bytes.push(FirmwareCommandType::BeerMe as u8),
         }
         bytes
     }
@@ -127,4 +129,5 @@ pub enum FirmwareCommandType {
     PullRack = 0x43,
     IsItOut = 0x44,
     SetPosition = 0x45,
+    BeerMe = 0x69,
 }

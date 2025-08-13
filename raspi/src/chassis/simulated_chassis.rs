@@ -119,6 +119,10 @@ impl ChassisTraits for SimulatedChassis {
     }
 
     fn stop_motors(&mut self) {}
+
+    fn beer_me(&self) {
+        todo!()
+    }
 }
 
 impl SimulatedChassis {

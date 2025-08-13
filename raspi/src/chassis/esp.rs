@@ -103,4 +103,5 @@ impl UtilitiESP {
     pub fn send_pull_rack_command(&self) {}
     pub fn send_is_it_in_command(&self) -> bool {}
     pub fn send_is_it_out_command(&self) -> bool {}
+    pub fn send_beer_me_command(&self) {}
 }

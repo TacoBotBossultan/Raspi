@@ -79,6 +79,10 @@ impl ChassisTraits for RealChassis {
     fn is_rack_extracted(&self) -> bool {
         self.utiliesp.send_is_it_out_command()
     }
+
+    fn beer_me(&self) {
+        self.utiliesp.send_beer_me_command();
+    }
 }
 impl RealChassis {
     pub fn new() -> Self {

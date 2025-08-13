@@ -20,6 +20,7 @@ pub trait ChassisTraits: Debug {
     fn set_position(&self, position: Position);
     fn is_rack_inserted(&self) -> bool;
     fn is_rack_extracted(&self) -> bool;
+    fn beer_me(&self);
 }
 
 #[repr(u8)]
