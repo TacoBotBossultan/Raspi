@@ -21,6 +21,8 @@ pub trait ChassisTraits: Debug {
     fn is_rack_inserted(&self) -> bool;
     fn is_rack_extracted(&self) -> bool;
     fn beer_me(&self);
+    fn on_led(&self);
+    fn off_led(&self);
 }
 
 #[repr(u8)]

@@ -83,6 +83,14 @@ impl ChassisTraits for RealChassis {
     fn beer_me(&self) {
         self.utiliesp.send_beer_me_command();
     }
+
+    fn on_led(&self) {
+        self.utiliesp.send_on_led_command();
+    }
+
+    fn off_led(&self) {
+        self.utiliesp.send_off_led_command();
+    }
 }
 impl RealChassis {
     pub fn new() -> Self {

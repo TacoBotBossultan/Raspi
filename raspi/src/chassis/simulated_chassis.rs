@@ -123,6 +123,14 @@ impl ChassisTraits for SimulatedChassis {
     fn beer_me(&self) {
         todo!()
     }
+
+    fn on_led(&self) {
+        todo!()
+    }
+
+    fn off_led(&self) {
+        todo!()
+    }
 }
 
 impl SimulatedChassis {
