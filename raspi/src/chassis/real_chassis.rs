@@ -1,6 +1,11 @@
-use std::{collections::HashMap, process::Command};
+use std::{collections::HashMap, fs, path::Path, process::Command};
 
-use crate::chassis::esp::{DrivESP, UtilitiESP};
+use crossterm::terminal::disable_raw_mode;
+
+use crate::chassis::{
+    config::Config,
+    esp::{DrivESP, UtilitiESP},
+};
 
 use super::chassis_traits::{
     ChassisTraits, EngineOrder,
@@ -9,6 +14,7 @@ use super::chassis_traits::{
 };
 
 static PRE_APPEND_STR: &str = "[Real-Chassis]";
+static CONFIG_PATH: &str = "config.toml";
 
 #[derive(Debug)]
 pub struct RealChassis {
@@ -92,6 +98,7 @@ impl ChassisTraits for RealChassis {
         self.utiliesp.send_off_led_command();
     }
 }
+
 impl RealChassis {
     pub fn new() -> Self {
         let mut init_speeds = HashMap::new();
@@ -109,9 +116,8 @@ impl RealChassis {
         }
     }
 
-    /// returns (utility_tty : String, drive_tty : String )
+    /// returns (utility_tty, drive_tty)
     fn get_esps_ttys() -> (String, String) {
-        //TODO: script care gaseste TTy-u  si seteaza esp-urile
         let output = Command::new("sh")
             .arg("-c")
             .arg("./id_identifier.sh")
@@ -119,7 +125,7 @@ impl RealChassis {
             .expect("Failed to execute script");
 
         let output_str = String::from_utf8_lossy(&output.stdout);
-        let mut tty_map = HashMap::new();
+        let mut tty_map = HashMap::new::<String, String>();
 
         for line in output_str.lines() {
             let parts: Vec<&str> = line.split(" - ").collect();
@@ -129,18 +135,41 @@ impl RealChassis {
         }
         println!("{:?}", tty_map);
 
+        let config = Self::get_esps_proccessor_names_from_config(CONFIG_PATH);
+
+        let utilitiesp_proccessor_id: String;
+        let drivesp_proccessor_id: String;
+
+        (utilitiesp_proccessor_id, drivesp_proccessor_id) = match config {
+            Ok(config) => (
+                config.utilitiesp_proccessor_id,
+                config.drivesp_proccessor_id,
+            ),
+            Err(()) => ("CV default idk", "alt cv default idk"),
+        };
+
         let utility_tty = tty_map
-            .get("utilityeps_or_smth idk")
+            .get(&utilitiesp_proccessor_id)
             .expect("UtilitiEsp not found")
             .clone();
         let drive_tty = tty_map
-            .get("driveesp_or_smth idk")
+            .get(&drivesp_proccessor_id)
             .expect("DrivESP not found")
             .clone();
 
         println!("{},{}", utility_tty, drive_tty);
 
         (utility_tty, drive_tty)
+    }
+
+    fn get_esps_proccessor_names_from_config(path: &str) -> Result<Config, ()> {
+        let path_obj = Path::new(path);
+        if path_obj.exists() {
+            let contents = fs::read_to_string(path_obj)?;
+            Ok(toml::from_str(&contents)?);
+        } else {
+            Err(())
+        }
     }
 }
 
