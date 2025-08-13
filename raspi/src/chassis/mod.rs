@@ -1,4 +1,5 @@
 pub mod chassis_traits;
+pub mod config;
 pub mod esp;
 pub mod real_chassis;
 pub mod serial_commands;
