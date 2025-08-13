@@ -49,31 +49,35 @@ impl ChassisTraits for RealChassis {
     }
 
     fn get_position(&self) -> Position {
-        todo!()
+        self.drivesp.send_get_position_command()
     }
 
-    fn insert_rack(&self) {}
+    fn insert_rack(&self) {
+        self.utiliesp.send_push_rack_command();
+    }
 
-    fn retrieve_rack(&self) {}
+    fn retrieve_rack(&self) {
+        self.utiliesp.send_pull_rack_command();
+    }
 
     fn are_buttons_pressed(&self) -> bool {
-        todo!()
+        self.utiliesp.send_btn_pressed_command()
     }
 
     fn arrived_at_a_lane(&self) -> bool {
-        todo!()
+        self.utiliesp.send_reached_lane_command()
     }
 
     fn set_position(&self, position: Position) {
-        todo!()
+        self.drivesp.send_set_position_command(position);
     }
 
     fn is_rack_inserted(&self) -> bool {
-        true
+        self.utiliesp.send_is_it_in_command()
     }
 
     fn is_rack_extracted(&self) -> bool {
-        true
+        self.utiliesp.send_is_it_out_command()
     }
 }
 impl RealChassis {
