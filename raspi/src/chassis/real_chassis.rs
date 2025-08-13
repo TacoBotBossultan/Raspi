@@ -17,7 +17,7 @@ use super::chassis_traits::{
 };
 
 static PRE_APPEND_STR: &str = "[Real-Chassis]";
-static CONFIG_PATH: &str = "config.toml";
+static CONFIG_PATH: &str = "/home/pi/Raspi_Official/raspi/src/config.toml";
 
 #[derive(Debug)]
 pub struct RealChassis {
@@ -128,6 +128,8 @@ impl RealChassis {
             .expect("Failed to execute script");
 
         let output_str = String::from_utf8_lossy(&output.stdout);
+
+        println!("OUtput string : {output_str:#?}");
         let mut tty_map = HashMap::new();
 
         for line in output_str.lines() {
@@ -156,6 +158,8 @@ impl RealChassis {
                 )
             }
         };
+
+        println!("TTY_mapu : {tty_map:#?}");
 
         let utility_tty = tty_map
             .get(&utilitiesp_proccessor_id)

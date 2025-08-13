@@ -1,9 +1,6 @@
 use super::{serial_commands::SerialCommand, serial_responses::SerialResponse};
-use serialport::{self, SerialPort, SerialPortBuilder};
-use std::{
-    collections::HashMap,
-    time::{self},
-};
+use serialport::{self, SerialPort};
+use std::time::{self};
 
 #[derive(Debug)]
 pub struct SerialCommunicator {
@@ -17,7 +14,7 @@ impl SerialCommunicator {
             serial_port: serialport::new(serial_port_path, 115200)
                 .timeout(time::Duration::from_secs(4000))
                 .open()
-                .expect("Failed to open port."),
+                .unwrap_or_else(|_| panic!("Failed to open port : {serial_port_path:#?}")),
             message_length: 16,
         }
     }
