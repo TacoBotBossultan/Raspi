@@ -2,6 +2,7 @@
 name = "raspi"
 version = "0.1.0"
 edition = "2024"
+default-run = "joc_cu_usb"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -14,5 +15,6 @@ num-derive = "0.4.2"
 once_cell = "1.21.3"
 pyo3 = { version = "0.25", features = ["auto-initialize"] }
 serialport = "4.7.2"
-# event-listener = "5.4.1"
-# evdev = "0.13.1"
+event-listener = "5.4.1"
+evdev = "0.13.1"
+udev = "0.9"
