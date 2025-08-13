@@ -35,15 +35,13 @@ impl DrivESP {
         match serial_response {
             SerialResponse::Yes => todo!(),
             SerialResponse::No => todo!(),
-            SerialResponse::HavePosition(have_position_response) => {
-                return Position::create(
-                    None,
-                    have_position_response.x,
-                    have_position_response.y,
-                    have_position_response.theta,
-                )
-                .unwrap();
-            }
+            SerialResponse::HavePosition(have_position_response) => Position::create(
+                None,
+                have_position_response.x,
+                have_position_response.y,
+                have_position_response.theta,
+            )
+            .unwrap(),
         }
     }
 
