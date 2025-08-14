@@ -1,8 +1,7 @@
 from flask import  render_template
-# app.py
-from flask_client import app
+from . import app
+from .connect_ghipitty import query_ghiptty
 from flask_socketio import SocketIO, emit
-
 socketio = SocketIO(app)
 
 @app.route('/')
@@ -19,9 +18,12 @@ def handle_message(msg):
     It prints the received message to the console and sends back a static response.
     """
     print('Message from client: ' + msg)
+    res = query_ghiptty(msg)
     # The 'emit' function sends an event to the client.
     # We're defining a custom event named 'response'.
-    emit('response', 'lmao')
+    res = res.choices[0].message.content
+    print('Cea zis ghiptty:', )
+    emit('response', res )
 
 if __name__ == '__main__':
     # The 'run' method starts the development server.

@@ -12,7 +12,7 @@ app.secret_key = os.urandom(24)
 #
 # def allowed_file(filename):
 #     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+from . import views
 
-import flask_client.views
 if __name__ == '__main__':
     app.run(debug=True)
