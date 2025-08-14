@@ -24,11 +24,14 @@ def handle_message(msg):
         res = query_ghiptty(msg)
         # defining a custom event named 'response'.
         print("Cea zis ghiptty:", res)
-        emit("response", res)
+        if res != None:
+            emit("response", res)
+        else:
+            emit("response", "N-a dat shitpitty niciun raspuns inapoi scz... zoinks")
     else:
         emit(
             "response",
-            "Stai ba ca nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
+            "Stai ba ca nici nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
         )
         (soseata, connected) = connect_to_server()
 
