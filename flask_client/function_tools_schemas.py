@@ -88,10 +88,45 @@ store_route_request_tool_schema = {
     },
 }
 
+define_home_request_tool_schema = {
+    "type": "function",
+    "function": {
+        "name": "define_home",
+        "description": "Defines the home position with coordinates and orientation.",
+        "strict": True,
+        "parameters": {
+            "additionalProperties": False,
+            "type": "object",
+            "properties": {
+                "DefineHome": {
+                    "type": "object",
+                    "properties": {
+                        "home_x": {
+                            "type": "number",
+                            "description": "X coordinate of the home position.",
+                        },
+                        "home_y": {
+                            "type": "number",
+                            "description": "Y coordinate of the home position.",
+                        },
+                        "home_theta": {
+                            "type": "number",
+                            "description": "Orientation angle at the home position, in degrees.",
+                        },
+                    },
+                    "required": ["home_x", "home_y", "home_theta"],
+                }
+            },
+            "required": ["DefineHome"],
+        },
+    },
+}
+
 tools = [
     state_request_tool_schema,
     photo_request_tool_schema,
     store_route_request_tool_schema,
+    define_home_request_tool_schema,
 ]
 
 
