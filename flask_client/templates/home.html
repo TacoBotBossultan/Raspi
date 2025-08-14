@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Real-Time Chat</title>
+    <!-- Basic styling for the chatbox -->
+    <link rel="stylesheet" href="static/home.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <form id="chat-form">
+            <input id="message-input" autocomplete="off" placeholder="Type a message..." required/>
+            <button id="send-button">Send</button>
+        </form>
+    </div>
+
+    <!-- Include the Socket.IO client library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script src="static/home.js"></script>
+</body>
+</html>
+
+
