@@ -1,6 +1,6 @@
 from flask import  render_template
 from . import app
-from .connect_ghipitty import query_ghiptty
+from .connect_ghipitty import zi_vremea, query_ghiptty
 from flask_socketio import SocketIO, emit
 socketio = SocketIO(app)
 
@@ -21,8 +21,7 @@ def handle_message(msg):
     res = query_ghiptty(msg)
     # The 'emit' function sends an event to the client.
     # We're defining a custom event named 'response'.
-    res = res.choices[0].message.content
-    print('Cea zis ghiptty:', )
+    print('Cea zis ghiptty:', res)
     emit('response', res )
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ import httpx
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolUnionParam
 
 load_dotenv()
 
@@ -21,12 +22,49 @@ client = OpenAI(
 # o4-mini -> reasoning model , little faster than o3
 # gpt-4o-mini -> cheaper than 4.1 mini , stronger than 4.1 nano 
 
+def get_weather(city: str):
+    return "the weather is sunny in " + city
 
-def query_ghiptty(prompt: str):
-    return  client.chat.completions.create(
+# Tool-Call Example
+tool_schema = {
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "description": "Provides the current weather in a city",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "name of the city"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+}
+
+
+def query_ghiptty(prompt: str) -> str | None:
+    response = client.chat.completions.create(
   model="gpt-4o-mini",
   messages=[
     {"role": "developer", "content": "Esti un nibun"},
     {"role": "user", "content": prompt }
   ]
 )
+    return response.choices[0].message.content
+
+def zi_vremea(prompt:str) -> str | None:
+    messages = [
+        {"role": "user", "content": prompt}
+    ]
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        tools=[tool_schema],
+        tool_choice="auto"
+    )
+    return response.choices[0].message.content
+
+
