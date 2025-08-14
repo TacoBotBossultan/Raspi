@@ -18,7 +18,7 @@ def handle_message(msg):
     It prints the received message to the console and sends back a static response.
     """
     print('Message from client: ' + msg)
-    res = query_ghiptty(msg)
+    res = zi_vremea(msg)
     # The 'emit' function sends an event to the client.
     # We're defining a custom event named 'response'.
     print('Cea zis ghiptty:', res)

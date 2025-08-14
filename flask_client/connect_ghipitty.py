@@ -3,6 +3,7 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolUnionParam
+import json
 
 load_dotenv()
 
@@ -23,7 +24,7 @@ client = OpenAI(
 # gpt-4o-mini -> cheaper than 4.1 mini , stronger than 4.1 nano 
 
 def get_weather(city: str):
-    return "the weather is sunny in " + city
+    return "the weather is rainy in " + city
 
 # Tool-Call Example
 tool_schema = {
@@ -55,16 +56,42 @@ def query_ghiptty(prompt: str) -> str | None:
 )
     return response.choices[0].message.content
 
-def zi_vremea(prompt:str) -> str | None:
-    messages = [
-        {"role": "user", "content": prompt}
-    ]
+def zi_vremea(user_input: str):
+    # First request — let model decide if it wants to call tool
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=messages,
+        messages=[
+            {"role": "system", "content": "You can use the get_weather tool if needed."},
+            {"role": "user", "content": user_input}
+        ],
         tools=[tool_schema],
         tool_choice="auto"
     )
-    return response.choices[0].message.content
 
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        # Model requested a tool call
+        tool_call = message.tool_calls[0]
+        args = json.loads(tool_call.function.arguments)
+
+        # Execute your Python function
+        result = get_weather(**args)
+
+        # Append result as tool output and ask model for final answer
+        follow_up = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You can use the get_weather tool if needed."},
+                {"role": "user", "content": user_input},
+                {"role": "assistant", "tool_calls": message.tool_calls},
+                {"role": "tool", "tool_call_id": tool_call.id, "content": json.dumps(result)}
+            ],
+            tools=[tool_schema]
+        )
+        return follow_up.choices[0].message.content
+
+    else:
+        # No tool used — model answered directly
+        return message.content
 
