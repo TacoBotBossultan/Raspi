@@ -78,11 +78,12 @@ impl Default for ControllerEvents {
 #[tokio::main]
 async fn main() {
     execute!(stdout(), Hide).unwrap();
+
     let chassis = RealChassis::new();
     let chassis_arc = Arc::new(Mutex::new(chassis));
 
     clear_screen_and_return_to_zero();
-    wait_for_controller("1", chassis_arc).await;
+    wait_for_controller("Wireless Controller", chassis_arc).await;
 
     return;
 
