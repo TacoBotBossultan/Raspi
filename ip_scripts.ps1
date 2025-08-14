@@ -1,5 +1,5 @@
 # Replace with your Pi's MAC address (case-insensitive, any delimiter)
-$targetMac = "b8:27:eb:12:34:56"
+$targetMac = "2C:CF:67:4B:22:82"
 
 # Normalize MAC to PowerShell's matching format
 $normalizedMac = $targetMac -replace "[:-]", "-"
