@@ -2,10 +2,10 @@ use super::chassis_traits::EngineOrder;
 
 #[derive(Debug, Clone)]
 pub struct SetSpeeds {
-    front_right_motor: EngineOrder,
-    front_left_motor: EngineOrder,
-    back_left_motor: EngineOrder,
-    back_right_motor: EngineOrder,
+    front_right_motor: u8,
+    front_left_motor: u8,
+    back_left_motor: u8,
+    back_right_motor: u8,
 }
 #[derive(Debug, Clone)]
 pub struct SetPosition {
@@ -46,10 +46,27 @@ impl Default for GiveMePosition {
 
 impl SetSpeeds {
     pub fn new(
-        front_right_motor: EngineOrder,
-        front_left_motor: EngineOrder,
-        back_left_motor: EngineOrder,
-        back_right_motor: EngineOrder,
+        front_right_motor_order: EngineOrder,
+        front_left_motor_order: EngineOrder,
+        back_left_motor_order: EngineOrder,
+        back_right_motor_order: EngineOrder,
+    ) -> Self {
+        let front_right_motor = front_right_motor_order as u8;
+        let front_left_motor = front_left_motor_order as u8;
+        let back_left_motor = back_left_motor_order as u8;
+        let back_right_motor = back_right_motor_order as u8;
+        Self {
+            front_right_motor,
+            front_left_motor,
+            back_left_motor,
+            back_right_motor,
+        }
+    }
+    pub fn new_tzaran(
+        front_right_motor: u8,
+        front_left_motor: u8,
+        back_left_motor: u8,
+        back_right_motor: u8,
     ) -> Self {
         Self {
             front_right_motor,
@@ -77,18 +94,16 @@ impl SerialCommand {
         match self {
             SerialCommand::SetSpeeds(data) => {
                 bytes.push(FirmwareCommandType::SetSpeed as u8);
-                bytes.push(data.front_right_motor.clone() as u8);
-                bytes.push(data.front_left_motor.clone() as u8);
-                bytes.push(data.back_left_motor.clone() as u8);
-                bytes.push(data.back_right_motor.clone() as u8);
+                bytes.push(data.front_right_motor);
+                bytes.push(data.front_left_motor);
+                bytes.push(data.back_left_motor);
+                bytes.push(data.back_right_motor);
             }
             SerialCommand::SetPosition(data) => {
                 bytes.push(FirmwareCommandType::SetPosition as u8);
-                //TODO: sa-l intrebati pe Gâscă daca e big endian sau lil' endian ca nu-mi dau
-                //seama daca le pune in ordinea corecta aici
-                bytes.extend_from_slice(&data.x_coordinate.to_be_bytes());
-                bytes.extend_from_slice(&data.y_coordinate.to_be_bytes());
-                bytes.extend_from_slice(&data.theta.to_be_bytes());
+                bytes.extend_from_slice(&data.x_coordinate.to_le_bytes());
+                bytes.extend_from_slice(&data.y_coordinate.to_le_bytes());
+                bytes.extend_from_slice(&data.theta.to_le_bytes());
             }
             SerialCommand::OnLED => {
                 bytes.push(FirmwareCommandType::OnLED as u8);

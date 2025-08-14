@@ -104,6 +104,21 @@ impl ChassisTraits for RealChassis {
 }
 
 impl RealChassis {
+    pub fn set_motor_speeds_tzaran(
+        &mut self,
+        front_right_motor_speed: u8,
+        front_left_motor_speed: u8,
+        back_left_motor_speed: u8,
+        back_right_motor_speed: u8,
+    ) {
+        self.drivesp.send_set_speeds_command_tzaran(
+            front_right_motor_speed,
+            front_left_motor_speed,
+            back_left_motor_speed,
+            back_right_motor_speed,
+        );
+    }
+
     pub fn new() -> Self {
         let mut init_speeds = HashMap::new();
         init_speeds.insert(FrontRight, EngineOrder::Stop);

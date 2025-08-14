@@ -64,6 +64,23 @@ impl DrivESP {
         self.serial_communicator
             .send_command_without_response(&set_speeds_command);
     }
+    pub fn send_set_speeds_command_tzaran(
+        &mut self,
+        front_right_motor: u8,
+        front_left_motor: u8,
+        back_left_motor: u8,
+        back_right_motor: u8,
+    ) {
+        let set_speeds_command = SerialCommand::SetSpeeds(serial_commands::SetSpeeds::new_tzaran(
+            front_right_motor,
+            front_left_motor,
+            back_left_motor,
+            back_right_motor,
+        ));
+
+        self.serial_communicator
+            .send_command_without_response(&set_speeds_command);
+    }
 }
 
 #[derive(Debug)]

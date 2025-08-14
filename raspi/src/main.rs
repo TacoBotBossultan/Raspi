@@ -1,6 +1,6 @@
-use std::process::Command as ProcessCommand;
-use std::{error::Error, io::stdout, sync::Arc};
-
+use crossterm::cursor::MoveTo;
+use crossterm::style::Print;
+use crossterm::terminal::Clear;
 use crossterm::{
     cursor::{Hide, Show},
     event::{Event, KeyCode, poll, read},
@@ -8,16 +8,18 @@ use crossterm::{
 };
 use evdev::KeyCode as EvDevKeyCode;
 use evdev::{AbsoluteAxisCode, Device, EventSummary};
+use raspi::chassis::chassis_traits::ChassisTraits;
 use raspi::{
     chassis::real_chassis::RealChassis,
     map_storage::route_storage::MapStorage,
-    master_controller::master_controller::{self, Command, MasterController},
+    master_controller::master_controller::{self, MasterController},
     mission_controller::mission_controller::MissionController,
     navigation_computing::navigation_computer::NavigationComputer,
     request_response::requests::Requests,
     utils::logging::{AsyncLogger, clear_screen_and_return_to_zero},
 };
-use tokio::sync::watch;
+use std::process::Command as ProcessCommand;
+use std::{error::Error, io::stdout, sync::Arc};
 use tokio::{
     io::{self, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -27,12 +29,13 @@ use tokio::{
 };
 
 static PRE_APPEND_STR: &str = "[MAIN]";
-
-const DEADZONE_LOWER: u32 = 1050;
-const DEADZONE_UPPER: u32 = 1250;
-const ALL_STOP: u32 = 1150;
+const STRAFE_FORWARD_SPEED: u8 = 110;
+const STRAFE_BACKWARD_SPEED: u8 = 90;
+const DEADZONE_LOWER: u8 = 99;
+const DEADZONE_UPPER: u8 = 101;
+const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
-const TOLERANCE: u32 = 25;
+const TOLERANCE: u32 = 3;
 
 pub struct ControllerEvents {
     pub left_motor_bank_value: i32,
@@ -66,13 +69,26 @@ impl ControllerEvents {
     }
 }
 
+impl Default for ControllerEvents {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    execute!(stdout(), Hide).unwrap();
+    let chassis = RealChassis::new();
+    let chassis_arc = Arc::new(Mutex::new(chassis));
+
+    clear_screen_and_return_to_zero();
+    wait_for_controller("1", chassis_arc).await;
+
+    return;
+
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
     let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
     let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
-    let chassis = RealChassis::new();
-    let chassis_arc = Arc::new(Mutex::new(chassis));
     let nav_computer = NavigationComputer::new();
     let mission_controller = MissionController::new(async_logger.clone());
     let (master_controller_command_sender, command_receiver) = mpsc::channel(32);
@@ -106,7 +122,6 @@ async fn main() {
         .await;
 
     clear_screen_and_return_to_zero();
-    execute!(stdout(), Hide).unwrap();
     println!("Running, press q or x to quit...");
     let notify = Arc::new(Notify::new());
     let notify_clone = notify.clone();
@@ -135,21 +150,20 @@ async fn main() {
 
     let read_duration = Duration::from_millis(50);
     loop {
-        if poll(read_duration).unwrap() {
-            if let Event::Key(event) = read().unwrap() {
-                if let KeyCode::Char('q') | KeyCode::Char('x') = event.code {
-                    clear_screen_and_return_to_zero();
-                    println!("Quitting.");
-                    notify.notify_one();
-                    tcp_handle.await.unwrap();
-                    master_arc.stop();
-                    join_handle.await.unwrap();
-                    sleep(Duration::from_millis(250)).await;
-                    clear_screen_and_return_to_zero();
-                    execute!(stdout(), Show).unwrap();
-                    break;
-                }
-            }
+        if poll(read_duration).unwrap()
+            && let Event::Key(event) = read().unwrap()
+            && let KeyCode::Char('q') | KeyCode::Char('x') = event.code
+        {
+            clear_screen_and_return_to_zero();
+            println!("Quitting.");
+            notify.notify_one();
+            tcp_handle.await.unwrap();
+            master_arc.stop();
+            join_handle.await.unwrap();
+            sleep(Duration::from_millis(250)).await;
+            clear_screen_and_return_to_zero();
+            execute!(stdout(), Show).unwrap();
+            break;
         }
     }
 }
@@ -243,7 +257,7 @@ fn find_controller_path(controller_name: &str) -> Option<String> {
     let output = &output[index..output.len()];
     let index = output.find("H: Handlers=")?;
 
-    let output = &output[index..output.len()].split('\n').nth(0)?;
+    let output = &output[index..output.len()].split('\n').next()?;
     let mut handlers = output.split("H: Handlers=").nth(1)?.split(' ');
 
     Some(
@@ -253,7 +267,7 @@ fn find_controller_path(controller_name: &str) -> Option<String> {
     )
 }
 
-async fn loop_until_docked(controller_name: &String, chassis_mutex: Arc<Mutex<RealChassis>>) {
+async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<RealChassis>>) {
     let mut device_path = None;
     println!("Please pair the controller...");
 
@@ -277,158 +291,237 @@ async fn loop_until_docked(controller_name: &String, chassis_mutex: Arc<Mutex<Re
 
     'outer: loop {
         for ev in controller.fetch_events().unwrap() {
-            match ev.destructure() {
-                EventSummary::Key(event, code, value) => match code {
-                    EvDevKeyCode::BTN_SOUTH => break 'outer,
-                    _ => {}
-                },
-                _ => {}
+            let EventSummary::Key(_, code, _) = ev.destructure() else {
+                continue;
+            };
+            if code == EvDevKeyCode::BTN_SOUTH {
+                break 'outer;
             }
         }
     }
 
-    println!("Reading PlayStation Controller inputs...");
+    clear_screen_and_return_to_zero();
+    execute!(
+        stdout(),
+        MoveTo(0, 0),
+        Clear(crossterm::terminal::ClearType::CurrentLine)
+    )
+    .unwrap();
+    execute!(stdout(), MoveTo(0, 0), Print("You have control.")).unwrap();
+
     let mut lefty_moving: bool = false;
     let mut righty_moving: bool = false;
 
     let events = ControllerEvents::new();
     let events_mutex = Arc::new(Mutex::new(events));
     let events_mutex_clone = events_mutex.clone();
-
+    let events_mutex_cloner = events_mutex.clone();
+    let chassis_mutex_clone = chassis_mutex.clone();
     let join_handle = spawn(async move {
         parse_events(events_mutex_clone, controller).await;
     });
+    let other_join_handle = spawn(async move {
+        loop {
+            if !events_mutex_cloner.lock().await.should_continue {
+                break;
+            }
+            sleep(Duration::from_millis(100)).await;
+            let mut chassis_lock = chassis_mutex_clone.lock().await;
+            let position = chassis_lock.get_position();
+            drop(chassis_lock);
+            execute!(
+                stdout(),
+                MoveTo(0, 1),
+                Clear(crossterm::terminal::ClearType::CurrentLine)
+            )
+            .unwrap();
+            execute!(
+                stdout(),
+                MoveTo(0, 1),
+                Print(format!("Current position is {:?}.", position))
+            )
+            .unwrap();
+        }
+    });
+
     let mut previous_left_motor_value = IMPOSSIBLE_VALUE as u32;
     let mut previous_right_motor_value = IMPOSSIBLE_VALUE as u32;
 
     loop {
         sleep(interval).await;
-
+        let mut chassis_lock;
         let mut mutex_guard = events_mutex.lock().await;
 
-        let left_motor_value = (*mutex_guard).left_motor_bank_value;
-        let right_motor_value = (*mutex_guard).right_motor_bank_value;
-        let insert_rack_button_value = (*mutex_guard).insert_rack_button_value;
-        let extract_rack_button_value = (*mutex_guard).extract_rack_button_value;
-        let beer_me_button_value = (*mutex_guard).beer_me_button_value;
-        let light_led_button_value = (*mutex_guard).light_led_button_value;
-        let extinguish_led_button_value = (*mutex_guard).extinguish_led_button_value;
-        let continue_button_value = (*mutex_guard).continue_control_button_value;
-        let strafe_left_button_value = (*mutex_guard).strafe_left_button_value;
-        let strafe_right_button_value = (*mutex_guard).strafe_right_button_value;
+        let left_motor_value = mutex_guard.left_motor_bank_value;
+        let right_motor_value = mutex_guard.right_motor_bank_value;
+        let insert_rack_button_value = mutex_guard.insert_rack_button_value;
+        let extract_rack_button_value = mutex_guard.extract_rack_button_value;
+        let beer_me_button_value = mutex_guard.beer_me_button_value;
+        let light_led_button_value = mutex_guard.light_led_button_value;
+        let extinguish_led_button_value = mutex_guard.extinguish_led_button_value;
+        let continue_button_value = mutex_guard.continue_control_button_value;
+        let strafe_left_button_value = mutex_guard.strafe_left_button_value;
+        let strafe_right_button_value = mutex_guard.strafe_right_button_value;
 
-        (*mutex_guard).left_motor_bank_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).right_motor_bank_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).insert_rack_button_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).extract_rack_button_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).beer_me_button_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).light_led_button_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).extinguish_led_button_value = IMPOSSIBLE_VALUE;
-        (*mutex_guard).continue_control_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.left_motor_bank_value = IMPOSSIBLE_VALUE;
+        mutex_guard.right_motor_bank_value = IMPOSSIBLE_VALUE;
+        mutex_guard.insert_rack_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.extract_rack_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.beer_me_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.light_led_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.extinguish_led_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.continue_control_button_value = IMPOSSIBLE_VALUE;
 
         drop(mutex_guard);
+        let mut fr_motor_speed: u8 = ALL_STOP;
+        let mut fl_motor_speed: u8 = ALL_STOP;
+        let mut bl_motor_speed: u8 = ALL_STOP;
+        let mut br_motor_speed: u8 = ALL_STOP;
 
         if strafe_left_button_value != 0 || strafe_right_button_value != 0 {
+            if strafe_left_button_value != 0 {
+                fr_motor_speed = STRAFE_FORWARD_SPEED;
+                fl_motor_speed = STRAFE_BACKWARD_SPEED;
+                bl_motor_speed = STRAFE_FORWARD_SPEED;
+                br_motor_speed = STRAFE_BACKWARD_SPEED;
+            } else if strafe_right_button_value != 0 {
+                fr_motor_speed = STRAFE_BACKWARD_SPEED;
+                fl_motor_speed = STRAFE_FORWARD_SPEED;
+                bl_motor_speed = STRAFE_BACKWARD_SPEED;
+                br_motor_speed = STRAFE_FORWARD_SPEED;
+            }
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.set_motor_speeds_tzaran(
+                fr_motor_speed,
+                fl_motor_speed,
+                bl_motor_speed,
+                br_motor_speed,
+            );
+            drop(chassis_lock);
         } else if left_motor_value != IMPOSSIBLE_VALUE || right_motor_value != IMPOSSIBLE_VALUE {
-            let current_value = (left_motor_value as f32 / 255.0 * 2400.0) as u32;
+            let mut current_left_bank_value = (left_motor_value as f32 / 255.0 * 200.0) as u8;
+            if current_left_bank_value < 1 {
+                current_left_bank_value = 1;
+            }
+            let mut current_right_bank_value = (right_motor_value as f32 / 255.0 * 200.0) as u8;
+            if current_right_bank_value < 1 {
+                current_right_bank_value = 1;
+            }
 
-            if current_value < DEADZONE_LOWER || current_value > DEADZONE_UPPER {
-                if previous_left_motor_value + TOLERANCE < current_value
-                    || previous_left_motor_value - TOLERANCE > current_value
+            if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_left_bank_value) {
+                if previous_left_motor_value + TOLERANCE < current_left_bank_value.into()
+                    || previous_left_motor_value - TOLERANCE > current_left_bank_value.into()
                 {
-                    previous_left_motor_value = current_value;
-                    let command = self
-                        .wheels_motor_left
-                        .create_move_command(MoveCommandCode::SetMotorSpeedDirectly, current_value);
-                    self.serial_communicator
-                        .send_command_without_response(&command);
+                    previous_left_motor_value = current_left_bank_value as u32;
+                    fl_motor_speed = current_left_bank_value;
+                    bl_motor_speed = current_left_bank_value;
                     lefty_moving = true;
                 }
             } else if lefty_moving {
-                previous_left_motor_value = ALL_STOP;
-                let command = self
-                    .wheels_motor_left
-                    .create_move_command(MoveCommandCode::SetMotorSpeedDirectly, ALL_STOP);
-                self.serial_communicator
-                    .send_command_without_response(&command);
+                previous_left_motor_value = ALL_STOP as u32;
+                fl_motor_speed = ALL_STOP;
+                bl_motor_speed = ALL_STOP;
                 lefty_moving = false;
             }
-            let current_value = (right_motor_value as f32 / 255.0 * 2400.0) as u32;
-            if current_value < DEADZONE_LOWER || current_value > DEADZONE_UPPER {
-                if previous_right_motor_value + TOLERANCE < current_value
-                    || previous_right_motor_value - TOLERANCE > current_value
+
+            if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_right_bank_value) {
+                if previous_right_motor_value + TOLERANCE < current_right_bank_value.into()
+                    || previous_right_motor_value - TOLERANCE > current_right_bank_value.into()
                 {
-                    previous_right_motor_value = current_value;
-                    let command = self
-                        .wheels_motor_right
-                        .create_move_command(MoveCommandCode::SetMotorSpeedDirectly, current_value);
-                    self.serial_communicator
-                        .send_command_without_response(&command);
+                    previous_right_motor_value = current_right_bank_value as u32;
+                    fr_motor_speed = current_right_bank_value;
+                    br_motor_speed = current_right_bank_value;
                     righty_moving = true;
                 }
             } else if righty_moving {
-                previous_right_motor_value = ALL_STOP;
-                let command = self
-                    .wheels_motor_right
-                    .create_move_command(MoveCommandCode::SetMotorSpeedDirectly, ALL_STOP);
-                self.serial_communicator
-                    .send_command_without_response(&command);
+                previous_right_motor_value = ALL_STOP as u32;
+                fr_motor_speed = ALL_STOP;
+                br_motor_speed = ALL_STOP;
                 righty_moving = false;
             }
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.set_motor_speeds_tzaran(
+                fr_motor_speed,
+                fl_motor_speed,
+                bl_motor_speed,
+                br_motor_speed,
+            );
+            drop(chassis_lock);
         }
         sleep(interval).await;
+        execute!(
+            stdout(),
+            MoveTo(0, 3),
+            Clear(crossterm::terminal::ClearType::CurrentLine)
+        )
+        .unwrap();
+        execute!(
+            stdout(),
+            MoveTo(0, 3),
+            Print(format!(
+                "{:?}          {:?}",
+                fl_motor_speed, fr_motor_speed
+            ))
+        )
+        .unwrap();
+        execute!(
+            stdout(),
+            MoveTo(0, 5),
+            Clear(crossterm::terminal::ClearType::CurrentLine)
+        )
+        .unwrap();
+        execute!(
+            stdout(),
+            MoveTo(0, 5),
+            Print(format!(
+                "{:?}          {:?}",
+                bl_motor_speed, br_motor_speed
+            ))
+        )
+        .unwrap();
 
         if insert_rack_button_value == 1 {
-            let pump_command = self
-                .pump
-                .create_pump_command(PumpCommandCode::SuckFluidDirectly, 0);
-            self.serial_communicator
-                .send_command_without_response(&pump_command);
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.insert_rack();
+            drop(chassis_lock);
         }
         sleep(interval).await;
 
         if extract_rack_button_value == 1 {
-            let pump_command = self
-                .pump
-                .create_pump_command(PumpCommandCode::PumpFluidDirectly, 0);
-            self.serial_communicator
-                .send_command_without_response(&pump_command);
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.retrieve_rack();
+            drop(chassis_lock);
         }
         sleep(interval).await;
 
         if beer_me_button_value == 1 {
-            let pump_command = self
-                .pump
-                .create_pump_command(PumpCommandCode::SuckTrashDirectly, 0);
-            self.serial_communicator
-                .send_command_without_response(&pump_command);
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.beer_me();
+            drop(chassis_lock);
         }
         sleep(interval).await;
 
         if light_led_button_value == 1 {
-            let pump_command = self
-                .pump
-                .create_pump_command(PumpCommandCode::PumpTrashDirectly, 0);
-            self.serial_communicator
-                .send_command_without_response(&pump_command);
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.on_led();
+            drop(chassis_lock);
         }
         sleep(interval).await;
 
         if extinguish_led_button_value == 1 {
-            let pump_command = self
-                .pump
-                .create_pump_command(PumpCommandCode::PumpTrashDirectly, 0);
-            self.serial_communicator
-                .send_command_without_response(&pump_command);
+            chassis_lock = chassis_mutex.lock().await;
+            chassis_lock.off_led();
+            drop(chassis_lock);
         }
         sleep(interval).await;
 
         if continue_button_value == 1 {
             println!("I am docked, stopping threads.");
             let mut mutex_guard = events_mutex.lock().await;
-            (*mutex_guard).should_continue = false;
+            mutex_guard.should_continue = false;
             drop(mutex_guard);
             join_handle.await.unwrap();
+            other_join_handle.await.unwrap();
             println!("Threads stopped, returning.");
             return;
         }
@@ -439,37 +532,37 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
     'outer: loop {
         for ev in controller.fetch_events().unwrap() {
             let mut mutex_guard = controller_events.lock().await;
-            if !(*mutex_guard).should_continue {
+            if !mutex_guard.should_continue {
                 break 'outer;
             }
             match ev.destructure() {
                 EventSummary::AbsoluteAxis(_, code, value) => match code {
                     AbsoluteAxisCode::ABS_RY => {
-                        (*mutex_guard).right_motor_bank_value = value;
+                        mutex_guard.right_motor_bank_value = value;
                     }
                     AbsoluteAxisCode::ABS_Y => {
-                        (*mutex_guard).left_motor_bank_value = value;
+                        mutex_guard.left_motor_bank_value = value;
                     }
                     _ => {}
                 },
                 EventSummary::Key(_, key, value) => match key {
                     EvDevKeyCode::BTN_TR => {
-                        (*mutex_guard).extract_rack_button_value = value;
+                        mutex_guard.extract_rack_button_value = value;
                     }
                     EvDevKeyCode::BTN_TR2 => {
-                        (*mutex_guard).insert_rack_button_value = value;
+                        mutex_guard.insert_rack_button_value = value;
                     }
                     EvDevKeyCode::BTN_TL2 => {
-                        (*mutex_guard).beer_me_button_value = value;
+                        mutex_guard.beer_me_button_value = value;
                     }
                     EvDevKeyCode::BTN_DPAD_UP => {
-                        (*mutex_guard).light_led_button_value = value;
+                        mutex_guard.light_led_button_value = value;
                     }
                     EvDevKeyCode::BTN_DPAD_DOWN => {
-                        (*mutex_guard).extinguish_led_button_value = value;
+                        mutex_guard.extinguish_led_button_value = value;
                     }
                     EvDevKeyCode::BTN_SOUTH => {
-                        (*mutex_guard).should_continue = value == 1;
+                        mutex_guard.should_continue = value == 1;
                     }
                     _ => {}
                 },
