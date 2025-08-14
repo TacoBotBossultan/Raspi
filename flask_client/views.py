@@ -1,35 +1,38 @@
 from flask import render_template
 from . import app
 from .connect_ghipitty import jesus_take_the_wheel, query_ghiptty
+from .connect_to_server import connect_to_server, send_request
 from flask_socketio import SocketIO, emit
 
+HOST = "127.0.0.1"
+PORT = 8080
+
 socketio = SocketIO(app)
+global soseata
+global connected
 
 
 @app.route("/")
 def index():
-    """
-    Serves the main HTML page for the chat application.
-    """
     return render_template("home.html")
 
 
 @socketio.on("message")
 def handle_message(msg):
-    """
-    Handles a new message received from a client.
-    It prints the received message to the console and sends back a static response.
-    """
     print("Message from client: " + msg)
-    res = query_ghiptty(msg)
-    # The 'emit' function sends an event to the client.
-    # We're defining a custom event named 'response'.
-    print("Cea zis ghiptty:", res)
-    emit("response", res)
+    if connected:
+        res = query_ghiptty(msg)
+        # defining a custom event named 'response'.
+        print("Cea zis ghiptty:", res)
+        emit("response", res)
+    else:
+        emit(
+            "response",
+            "Stai ba ca nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
+        )
+        (soseata, connected) = connect_to_server()
 
 
 if __name__ == "__main__":
-    # The 'run' method starts the development server.
-    # We use socketio.run to ensure the WebSocket server is started correctly.
-    # Using eventlet is a common choice for production-ready WebSocket servers with Flask.
+    (soseata, connected) = connect_to_server()
     socketio.run(app, debug=True)

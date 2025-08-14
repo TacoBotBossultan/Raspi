@@ -1,9 +1,7 @@
-import re
 import httpx
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolUnionParam
 import json
 
 load_dotenv()
@@ -29,23 +27,101 @@ def get_weather(city: str):
     return "the weather is rainy in " + city
 
 
-# Tool-Call Example
-weather_tool_schema = {
+state_request_tool_schema = {
     "type": "function",
     "function": {
-        "name": "get_weather",
-        "description": "Provides the current weather in a city",
+        "name": "state_request",
+        "description": "Requests the current state of the robot",
         "strict": True,
         "parameters": {
-            "type": "object",
-            "required": ["city"],
             "additionalProperties": False,
-            "properties": {
-                "city": {"type": "string", "description": "name of the city"}
-            },
+            "type": "object",
+            "parameters": {"type": "object", "properties": {}, "required": []},
         },
     },
 }
+
+photo_request_tool_schema = {
+    "type": "function",
+    "function": {
+        "name": "photo_request",
+        "description": "Requests a Photo from the 'electric eye' on the robot",
+        "strict": True,
+        "parameters": {
+            "additionalProperties": False,
+            "type": "object",
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+}
+
+store_route_request_tool_schema = {
+    "type": "function",
+    "function": {
+        "name": "store_routes_request",
+        "description": "Stores one or more routes with start position name, route steps, and destination name. Try to satisfy the restriction : list[n].destination_position_name == list[n+1].start_position_name",
+        "strict": True,
+        "parameters": {
+            "additionalProperties": False,
+            "type": "object",
+            "properties": {
+                "routes": {
+                    "type": "array",
+                    "description": "List of routes to store.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "StoreRoute": {
+                                "type": "object",
+                                "properties": {
+                                    "start_position_name": {
+                                        "type": "string",
+                                        "description": "Name of the starting position.",
+                                    },
+                                    "route": {
+                                        "type": "array",
+                                        "description": "List of movement steps.",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "direction_type": {
+                                                    "type": "string",
+                                                    "description": "Directions that are either NoMovement | Forward | Right | Backward | Left | RotateLeft | RotateRight ",
+                                                },
+                                                "value": {
+                                                    "type": "number",
+                                                    "description": "Value associated with the direction (e.g., distance or angle).",
+                                                },
+                                            },
+                                            "required": ["direction_type", "value"],
+                                        },
+                                    },
+                                    "destination_position_name": {
+                                        "type": "string",
+                                        "description": "Name of the destination position.",
+                                    },
+                                },
+                                "required": [
+                                    "start_position_name",
+                                    "route",
+                                    "destination_position_name",
+                                ],
+                            }
+                        },
+                        "required": ["StoreRoute"],
+                    },
+                }
+            },
+            "required": ["routes"],
+        },
+    },
+}
+
+tools = [
+    state_request_tool_schema,
+    photo_request_tool_schema,
+    store_route_request_tool_schema,
+]
 
 
 def query_ghiptty(prompt: str) -> str | None:
@@ -77,7 +153,7 @@ def jesus_take_the_wheel(user_input: str):
             "type": "allowed_tools",
             "parallel_tool_calls": "false",
             "mode": "auto",
-            "tools": [weather_tool_schema],
+            "tools": tools,
         },
     )
 
