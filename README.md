@@ -20,6 +20,11 @@ pip install -r requirements.txt
 nvim flask_client/.env
 #sa-ti fie viata mai usoara
 conf pull
+scz
+#short for source source ~/.zshrc
+#sau
+scb
+#~/.bashrc, orice folosesti
 #si acum poti sa folosesti pe scurt:
 fr
 #care are alias la
