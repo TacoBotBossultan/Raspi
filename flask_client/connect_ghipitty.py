@@ -3,7 +3,7 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import json
-from .function_tools_schemas import tools
+from function_tools_schemas import tools
 
 load_dotenv()
 

@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
   socket.on('response', (msg) => {
     addMessage(msg, 'server-response');
-    console.log("venit raspunsu ", msg)
+    console.log("venit raspunsu ", msg);
   });
 
   socket.on('connect', () => {
