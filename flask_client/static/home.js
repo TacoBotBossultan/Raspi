@@ -1,6 +1,4 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-
-
+document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
 
   const messagesDiv = document.getElementById('messages');
@@ -8,7 +6,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const messageInput = document.getElementById('message-input');
 
 
-  const addMessage = (content, type) => {
+  const addMessageToUI = (content, type) => {
     const msgElement = document.createElement('div');
     msgElement.textContent = content;
     msgElement.classList.add('message', type);
@@ -21,14 +19,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
     e.preventDefault();
     const message = messageInput.value.trim();
     if (message) {
-      addMessage(message, 'user-message');
+      addMessageToUI(message, 'user-message');
       socket.emit('message', message);
       messageInput.value = '';
     }
   });
 
   socket.on('response', (msg) => {
-    addMessage(msg, 'server-response');
+    addMessageToUI(msg, 'server-response');
     console.log("venit raspunsu ", msg);
   });
 

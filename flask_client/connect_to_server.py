@@ -32,7 +32,7 @@ def send_request(sock, request_data):
 
 
 # socket, daca s-a conectat
-def connect_to_server() -> tuple[socket.socket, bool]:
+def connect_to_rust_server() -> tuple[socket.socket, bool]:
     soseata = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         soseata.connect((HOST, PORT))

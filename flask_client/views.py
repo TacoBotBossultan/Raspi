@@ -1,7 +1,7 @@
 from flask import render_template
 from . import app
 from connect_ghipitty import jesus_take_the_wheel, query_ghiptty
-from connect_to_server import connect_to_server, send_request
+from connect_to_server import connect_to_rust_server, send_request
 from flask_socketio import SocketIO, emit
 
 HOST = "127.0.0.1"
@@ -32,10 +32,10 @@ def handle_message(msg):
             "response",
             "Stai ba ca nici nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
         )
-        (soseata, connected) = connect_to_server()
+        (soseata, connected) = connect_to_rust_server()
 
 
 if __name__ == "__main__":
     global soseata, connected
-    (soseata, connected) = connect_to_server()
+    (soseata, connected) = connect_to_rust_server()
     socketio.run(app, debug=True)
