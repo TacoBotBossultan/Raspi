@@ -19,23 +19,33 @@ def index():
     return render_template("home.html")
 
 
+# @socketio.on("message")
+# def only_handle_message_if_connected_to_raspi(msg):
+#     print("Message from client: " + msg)
+#     global connected, soseata_rust
+#     if connected:
+#         res = jesus_take_the_wheel(msg)
+#         print("Cea zis ghiptty:", res)
+#         if res != None:
+#             emit("response", res)
+#         else:
+#             emit("response", "N-a dat shitpitty niciun raspuns inapoi scz... zoinks")
+#     else:
+#         emit(
+#             "response",
+#             "Stai ba ca nici nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
+#         )
+#         soseata_rust, connected = connect_to_rust_server()
+
+
 @socketio.on("message")
 def handle_message(msg):
-    print("Message from client: " + msg)
-    global connected, soseata_rust
-    if connected:
-        res = query_ghiptty(msg)
-        print("Cea zis ghiptty:", res)
-        if res != None:
-            emit("response", res)
-        else:
-            emit("response", "N-a dat shitpitty niciun raspuns inapoi scz... zoinks")
+    res = query_ghiptty(msg)
+    print("Cea zis ghiptty:", res)
+    if res != None:
+        emit("response", res)
     else:
-        emit(
-            "response",
-            "Stai ba ca nici nu e conectat la serveru ala jegos de Rust nuj dc, incerc din nou sa ma contectez ... scrie-mi si tu mai incolo",
-        )
-        soseata_rust, connected = connect_to_rust_server()
+        emit("response", "N-a dat shitpitty niciun raspuns inapoi scz... zoinks")
 
 
 if __name__ == "__main__":
