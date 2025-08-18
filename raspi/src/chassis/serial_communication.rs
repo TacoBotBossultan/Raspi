@@ -37,7 +37,7 @@ impl SerialCommunicator {
             .write_all(data)
             .expect("Nu pot sa scriu mesaju la port");
 
-        println!("Sending to port {:?} data {:?}", self.serial_port, data);
+        //println!("Sending to port {:?} data {:?}", self.serial_port, data);
 
         let _ = self.serial_port.flush();
     }
@@ -54,11 +54,11 @@ impl SerialCommunicator {
                 error
             );
         } else if read_result.is_ok() {
-            print!("Received from port {:?}: ", self.serial_port.name());
-            for byte in &read_buffer {
-                print!(" {:#x}", byte);
-            }
-            println!();
+            //print!("Received from port {:?}: ", self.serial_port.name());
+            //for byte in &read_buffer {
+            //    print!(" {:#x}", byte);
+            //}
+            //println!();
         }
 
         SerialResponse::try_from(read_buffer).expect("Response parsing failure.")
