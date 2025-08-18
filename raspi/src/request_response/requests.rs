@@ -15,7 +15,7 @@ pub struct State;
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct StoreRoute {
     start_position_name: String,
-    route: VecDeque<|irectionMove>,
+    route: VecDeque<DirectionMove>,
     destination_position_name: String,
 }
 
