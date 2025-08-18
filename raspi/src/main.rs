@@ -358,8 +358,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
 
         mutex_guard.left_motor_bank_value = IMPOSSIBLE_VALUE;
         mutex_guard.right_motor_bank_value = IMPOSSIBLE_VALUE;
-        mutex_guard.strafe_left_button_value = IMPOSSIBLE_VALUE;
-        mutex_guard.strafe_right_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.insert_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.extract_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.beer_me_button_value = IMPOSSIBLE_VALUE;
