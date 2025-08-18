@@ -17,8 +17,8 @@ use super::chassis_traits::{
 };
 
 static PRE_APPEND_STR: &str = "[Real-Chassis]";
-static CONFIG_PATH: &str = "./config.toml";
-static SCRIPT_PATH: &str = "./chassis/id_identifier.sh";
+static CONFIG_PATH: &str = "/home/pi/Raspi_Official/raspi/src/config.toml";
+static SCRIPT_PATH: &str = "/home/pi/Raspi_Official/raspi/src/chassis/id_identifier.sh";
 
 #[derive(Debug)]
 pub struct RealChassis {
