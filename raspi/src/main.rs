@@ -31,8 +31,8 @@ use tokio::{
 static PRE_APPEND_STR: &str = "[MAIN]";
 const STRAFE_FORWARD_SPEED: u8 = 110;
 const STRAFE_BACKWARD_SPEED: u8 = 90;
-const DEADZONE_LOWER: u8 = 95;
-const DEADZONE_UPPER: u8 = 105;
+const DEADZONE_LOWER: i32 = 118;
+const DEADZONE_UPPER: i32 = 132;
 const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
 
@@ -323,7 +323,7 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             }
             sleep(Duration::from_millis(100)).await;
             let mut chassis_lock = chassis_mutex_clone.lock().await;
-            let position = chassis_lock.get_position();
+            let position = chassis_lock.get_position().unwrap();
             drop(chassis_lock);
             execute!(
                 stdout(),
@@ -339,7 +339,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             .unwrap();
         }
     });
-
     loop {
         sleep(interval).await;
         let mut chassis_lock;
@@ -356,8 +355,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         let strafe_left_button_value = mutex_guard.strafe_left_button_value;
         let strafe_right_button_value = mutex_guard.strafe_right_button_value;
 
-        mutex_guard.left_motor_bank_value = IMPOSSIBLE_VALUE;
-        mutex_guard.right_motor_bank_value = IMPOSSIBLE_VALUE;
         mutex_guard.insert_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.extract_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.beer_me_button_value = IMPOSSIBLE_VALUE;
@@ -386,7 +383,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         let mut bl_motor_speed: u8 = ALL_STOP;
         let mut br_motor_speed: u8 = ALL_STOP;
 
-        if strafe_left_button_value != IMPOSSIBLE_VALUE || strafe_right_button_value != IMPOSSIBLE_VALUE {
             if strafe_left_button_value != IMPOSSIBLE_VALUE {
                 fr_motor_speed = STRAFE_FORWARD_SPEED;
                 fl_motor_speed = STRAFE_BACKWARD_SPEED;
@@ -397,41 +393,26 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
                 fl_motor_speed = STRAFE_FORWARD_SPEED;
                 bl_motor_speed = STRAFE_BACKWARD_SPEED;
                 br_motor_speed = STRAFE_FORWARD_SPEED;
-            }
-            chassis_lock = chassis_mutex.lock().await;
-            chassis_lock.set_motor_speeds_tzaran(
-                fr_motor_speed,
-                fl_motor_speed,
-                bl_motor_speed,
-                br_motor_speed,
-            );
-            drop(chassis_lock);
-        } else if left_motor_value != IMPOSSIBLE_VALUE || right_motor_value != IMPOSSIBLE_VALUE {
+            } else {
+            if left_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&left_motor_value) { 
             let mut current_left_bank_value = (left_motor_value as f32 / 255.0 * 200.0) as u8;
             if current_left_bank_value < 1 {
                 current_left_bank_value = 1;
             }
+                    fl_motor_speed = current_left_bank_value;
+                    bl_motor_speed = current_left_bank_value;
+            }
+            if right_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&right_motor_value) {
             let mut current_right_bank_value = (right_motor_value as f32 / 255.0 * 200.0) as u8;
             if current_right_bank_value < 1 {
                 current_right_bank_value = 1;
             }
 
-            if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_left_bank_value) {
-                    fl_motor_speed = current_left_bank_value;
-                    bl_motor_speed = current_left_bank_value;
-            } else {
-                fl_motor_speed = ALL_STOP;
-                bl_motor_speed = ALL_STOP;
-            }
-
-            if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_right_bank_value) {
                     fr_motor_speed = current_right_bank_value;
                     br_motor_speed = current_right_bank_value;
-            } else {
-                fr_motor_speed = ALL_STOP;
-                br_motor_speed = ALL_STOP;
-            }
-            chassis_lock = chassis_mutex.lock().await;
+            }            
+                    }
+chassis_lock = chassis_mutex.lock().await;
             chassis_lock.set_motor_speeds_tzaran(
                 fr_motor_speed,
                 fl_motor_speed,
@@ -439,7 +420,7 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
                 br_motor_speed,
             );
             drop(chassis_lock);
-        }
+
         sleep(interval).await;
         execute!(
             stdout(),
@@ -524,10 +505,10 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
 async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut controller: Device) {
     'outer: loop {
         let events = controller.fetch_events().unwrap();
-        
         for ev in events {
             let mut mutex_guard = controller_events.lock().await;
             if !mutex_guard.should_continue {
+                drop(mutex_guard);
                 break 'outer;
             }
             match ev.destructure() {
