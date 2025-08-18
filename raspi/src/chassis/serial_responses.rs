@@ -1,5 +1,3 @@
-use std::u8;
-
 #[derive(PartialEq, Eq)]
 pub struct HavePositionResponse {
     pub x: u32,
@@ -28,15 +26,15 @@ impl TryFrom<Vec<u8>> for SerialResponse {
             val if val == FirmwareResponseType::Yes as u8 => Ok(SerialResponse::Yes),
             val if val == FirmwareResponseType::No as u8 => Ok(SerialResponse::No),
             val if val == FirmwareResponseType::HavePosition as u8 => {
-                let x_bytes: [u8; 4] = firmware_response[1..4]
+                let x_bytes = firmware_response[1..=4]
                     .try_into()
-                    .expect("Couldn't slice the response to extract the X bytes.");
-                let y_bytes: [u8; 4] = firmware_response[5..8]
+                    .expect("Couldn't slice and convert the X position.");
+                let y_bytes = firmware_response[5..=8]
                     .try_into()
-                    .expect("Couldn't slice the response to extract the Y bytes.");
-                let theta_bytes: [u8; 2] = firmware_response[9..10]
+                    .expect("Couldn't slice and convert the Y position.");
+                let theta_bytes = firmware_response[9..=10]
                     .try_into()
-                    .expect("Couldn't slice the response to extract the theta bytes.");
+                    .expect("Couldn't slice and convert the theta position.");
                 let x = u32::from_le_bytes(x_bytes);
                 let y = u32::from_le_bytes(y_bytes);
                 let theta = u16::from_le_bytes(theta_bytes);

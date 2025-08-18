@@ -31,8 +31,8 @@ use tokio::{
 static PRE_APPEND_STR: &str = "[MAIN]";
 const STRAFE_FORWARD_SPEED: u8 = 110;
 const STRAFE_BACKWARD_SPEED: u8 = 90;
-const DEADZONE_LOWER: u8 = 99;
-const DEADZONE_UPPER: u8 = 101;
+const DEADZONE_LOWER: u8 = 95;
+const DEADZONE_UPPER: u8 = 105;
 const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
 const TOLERANCE: u32 = 3;
@@ -84,7 +84,6 @@ async fn main() {
 
     clear_screen_and_return_to_zero();
     wait_for_controller("Wireless Controller", chassis_arc).await;
-
     return;
 
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
@@ -366,6 +365,8 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
 
         mutex_guard.left_motor_bank_value = IMPOSSIBLE_VALUE;
         mutex_guard.right_motor_bank_value = IMPOSSIBLE_VALUE;
+        mutex_guard.strafe_left_button_value = IMPOSSIBLE_VALUE;
+        mutex_guard.strafe_right_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.insert_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.extract_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.beer_me_button_value = IMPOSSIBLE_VALUE;
@@ -374,18 +375,33 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         mutex_guard.continue_control_button_value = IMPOSSIBLE_VALUE;
 
         drop(mutex_guard);
+        execute!(
+            stdout(),
+            MoveTo(0, 7),
+            Clear(crossterm::terminal::ClearType::CurrentLine)
+        )
+        .unwrap();
+        execute!(
+            stdout(),
+            MoveTo(0, 7),
+            Print(format!(
+                "LB: {:?} RB: {:?} IR: {:?} ER: {:?} BM: {:?} LL: {:?} EL: {:?} SL: {:?} SR: {:?} CB: {:?}",
+               left_motor_value, right_motor_value, insert_rack_button_value, extract_rack_button_value, beer_me_button_value, light_led_button_value, extinguish_led_button_value, strafe_left_button_value, strafe_right_button_value, continue_button_value 
+            ))
+        )
+        .unwrap();
         let mut fr_motor_speed: u8 = ALL_STOP;
         let mut fl_motor_speed: u8 = ALL_STOP;
         let mut bl_motor_speed: u8 = ALL_STOP;
         let mut br_motor_speed: u8 = ALL_STOP;
 
-        if strafe_left_button_value != 0 || strafe_right_button_value != 0 {
-            if strafe_left_button_value != 0 {
+        if strafe_left_button_value != IMPOSSIBLE_VALUE || strafe_right_button_value != IMPOSSIBLE_VALUE {
+            if strafe_left_button_value != IMPOSSIBLE_VALUE {
                 fr_motor_speed = STRAFE_FORWARD_SPEED;
                 fl_motor_speed = STRAFE_BACKWARD_SPEED;
                 bl_motor_speed = STRAFE_FORWARD_SPEED;
                 br_motor_speed = STRAFE_BACKWARD_SPEED;
-            } else if strafe_right_button_value != 0 {
+            } else if strafe_right_button_value != IMPOSSIBLE_VALUE {
                 fr_motor_speed = STRAFE_BACKWARD_SPEED;
                 fl_motor_speed = STRAFE_FORWARD_SPEED;
                 bl_motor_speed = STRAFE_BACKWARD_SPEED;
@@ -517,7 +533,8 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         sleep(interval).await;
 
         if continue_button_value == 1 {
-            println!("I am docked, stopping threads.");
+            clear_screen_and_return_to_zero();
+            println!("Stopping threads.");
             let mut mutex_guard = events_mutex.lock().await;
             mutex_guard.should_continue = false;
             drop(mutex_guard);
@@ -562,13 +579,14 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
                     EvDevKeyCode::BTN_DPAD_DOWN => {
                         mutex_guard.extinguish_led_button_value = value;
                     }
-                    EvDevKeyCode::BTN_SOUTH => {
-                        mutex_guard.should_continue = value == 1;
+                    EvDevKeyCode::BTN_NORTH=> {
+                        mutex_guard.continue_control_button_value = value;
                     }
                     _ => {}
                 },
                 _ => {}
             }
+            drop(mutex_guard);
         }
     }
 }
