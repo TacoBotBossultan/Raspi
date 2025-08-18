@@ -183,7 +183,7 @@ def detect_yellow_marker(image_path):
     upper_purple = np.array([155, 255, 255]) 
     mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
     
-    cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\mask_yellow2.jpg", mask_yellow)
+    #cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\mask_yellow2.jpg", mask_yellow)
     mask_purple = cv2.inRange(hsv, lower_purple, upper_purple)
     contours, _ = cv2.findContours(mask_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
@@ -191,18 +191,11 @@ def detect_yellow_marker(image_path):
             x, y, w, h = cv2.boundingRect(contour)
             if h/6 <= w:
                 continue 
-            left = image[y:y+h, x-9:x-1]
-            right = image[y:y+h, x+w+1:x+w+9]
             mask_left = mask_purple[y:y+h, x-9:x-1]
             mask_right = mask_purple[y:y+h, x+w+1:x+w+9]
-            result_left = cv2.bitwise_and(left, left, mask=mask_left)
-            result_right = cv2.bitwise_and(right, right, mask=mask_right)
             if cv2.countNonZero(mask_left) > 0 and cv2.countNonZero(mask_right) > 0:
                 image_height = h
                 estimated_distance = (real_height * focal_length) / image_height
-        #stripe = image[y:y+h, x:x+w]
-        #cv2.imwrite("detected_stripe100.jpg", stripe)
-        #print(f"Estimated distance to stripe: {estimated_distance:.2f} cm")
 
                 stripe_center_y = y + h / 2
                 image_center_y = image.shape[0] / 2
@@ -211,8 +204,8 @@ def detect_yellow_marker(image_path):
                 angle_rad = math.atan(pixel_offset_y / focal_length)
 
                 angle_deg = math.degrees(angle_rad)
-                stripe = image[y:y+h, x:x+w]
-                cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\detected_stripe3.jpg", stripe)
+                #stripe = image[y:y+h, x:x+w]
+                #cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\detected_stripe3.jpg", stripe)
                 return estimated_distance, angle_deg
 
     return None, None 
