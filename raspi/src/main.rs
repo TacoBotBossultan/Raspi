@@ -35,7 +35,6 @@ const DEADZONE_LOWER: u8 = 95;
 const DEADZONE_UPPER: u8 = 105;
 const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
-const TOLERANCE: u32 = 3;
 
 pub struct ControllerEvents {
     pub left_motor_bank_value: i32,
@@ -309,9 +308,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
     .unwrap();
     execute!(stdout(), MoveTo(0, 0), Print("You have control.")).unwrap();
 
-    let mut lefty_moving: bool = false;
-    let mut righty_moving: bool = false;
-
     let events = ControllerEvents::new();
     let events_mutex = Arc::new(Mutex::new(events));
     let events_mutex_clone = events_mutex.clone();
@@ -343,9 +339,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             .unwrap();
         }
     });
-
-    let mut previous_left_motor_value = IMPOSSIBLE_VALUE as u32;
-    let mut previous_right_motor_value = IMPOSSIBLE_VALUE as u32;
 
     loop {
         sleep(interval).await;
@@ -426,35 +419,19 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             }
 
             if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_left_bank_value) {
-                if previous_left_motor_value + TOLERANCE < current_left_bank_value.into()
-                    || previous_left_motor_value - TOLERANCE > current_left_bank_value.into()
-                {
-                    previous_left_motor_value = current_left_bank_value as u32;
                     fl_motor_speed = current_left_bank_value;
                     bl_motor_speed = current_left_bank_value;
-                    lefty_moving = true;
-                }
-            } else if lefty_moving {
-                previous_left_motor_value = ALL_STOP as u32;
+            } else {
                 fl_motor_speed = ALL_STOP;
                 bl_motor_speed = ALL_STOP;
-                lefty_moving = false;
             }
 
             if !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&current_right_bank_value) {
-                if previous_right_motor_value + TOLERANCE < current_right_bank_value.into()
-                    || previous_right_motor_value - TOLERANCE > current_right_bank_value.into()
-                {
-                    previous_right_motor_value = current_right_bank_value as u32;
                     fr_motor_speed = current_right_bank_value;
                     br_motor_speed = current_right_bank_value;
-                    righty_moving = true;
-                }
-            } else if righty_moving {
-                previous_right_motor_value = ALL_STOP as u32;
+            } else {
                 fr_motor_speed = ALL_STOP;
                 br_motor_speed = ALL_STOP;
-                righty_moving = false;
             }
             chassis_lock = chassis_mutex.lock().await;
             chassis_lock.set_motor_speeds_tzaran(
@@ -548,7 +525,9 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
 
 async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut controller: Device) {
     'outer: loop {
-        for ev in controller.fetch_events().unwrap() {
+        let events = controller.fetch_events().unwrap();
+        
+        for ev in events {
             let mut mutex_guard = controller_events.lock().await;
             if !mutex_guard.should_continue {
                 break 'outer;
@@ -560,6 +539,17 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
                     }
                     AbsoluteAxisCode::ABS_Y => {
                         mutex_guard.left_motor_bank_value = value;
+                    }
+                    AbsoluteAxisCode::ABS_HAT0X => {
+                        match value {
+                            -1 => mutex_guard.strafe_left_button_value = 1,
+                            1 => mutex_guard.strafe_right_button_value = 1,
+                            0 => {
+                                mutex_guard.strafe_left_button_value = IMPOSSIBLE_VALUE;
+                                mutex_guard.strafe_right_button_value = IMPOSSIBLE_VALUE;
+                            },
+                        _ => {}
+                        }
                     }
                     _ => {}
                 },
@@ -573,10 +563,10 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
                     EvDevKeyCode::BTN_TL2 => {
                         mutex_guard.beer_me_button_value = value;
                     }
-                    EvDevKeyCode::BTN_DPAD_UP => {
+                    EvDevKeyCode::BTN_WEST => {
                         mutex_guard.light_led_button_value = value;
                     }
-                    EvDevKeyCode::BTN_DPAD_DOWN => {
+                    EvDevKeyCode::BTN_EAST => {
                         mutex_guard.extinguish_led_button_value = value;
                     }
                     EvDevKeyCode::BTN_NORTH=> {
