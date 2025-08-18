@@ -12,7 +12,7 @@ impl SerialCommunicator {
     pub fn new(serial_port_path: &str) -> SerialCommunicator {
         SerialCommunicator {
             serial_port: serialport::new(serial_port_path, 115200)
-                .timeout(time::Duration::from_secs(4000))
+                .timeout(time::Duration::from_millis(500))
                 .open()
                 .unwrap_or_else(|_| panic!("Nu pot sa deschid portu : {serial_port_path:#?}")),
             message_length: 16,
@@ -33,10 +33,7 @@ impl SerialCommunicator {
             .clear(serialport::ClearBuffer::All)
             .expect("Could not clear buffer.");
 
-        self.serial_port
-            .write_all(data)
-            .expect("Nu pot sa scriu mesaju la port");
-
+        let _ = self.serial_port.write_all(data);
         //println!("Sending to port {:?} data {:?}", self.serial_port, data);
 
         let _ = self.serial_port.flush();
