@@ -31,8 +31,8 @@ use tokio::{
 static PRE_APPEND_STR: &str = "[MAIN]";
 const STRAFE_FORWARD_SPEED: u8 = 110;
 const STRAFE_BACKWARD_SPEED: u8 = 90;
-const DEADZONE_LOWER: i32 = 118;
-const DEADZONE_UPPER: i32 = 132;
+const DEADZONE_LOWER: i32 = 115;
+const DEADZONE_UPPER: i32 = 135;
 const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
 
@@ -394,20 +394,22 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             br_motor_speed = STRAFE_FORWARD_SPEED;
         } else {
             if left_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&left_motor_value) { 
-            let mut current_left_bank_value = (left_motor_value as f32 / 255.0 * 200.0) as u8;
-            if current_left_bank_value < 1 {
-                current_left_bank_value = 1;
-            }
-                fl_motor_speed = current_left_bank_value;
-                bl_motor_speed = current_left_bank_value;
+                let mut current_left_bank_value = (left_motor_value as f32 / 255.0 * 200.0) as u8;
+                current_left_bank_value = 200 - current_left_bank_value;
+                if current_left_bank_value < 1 {
+                    current_left_bank_value = 1;
+                }
+                    fl_motor_speed = current_left_bank_value;
+                    bl_motor_speed = current_left_bank_value;
             }
             if right_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&right_motor_value) {
-            let mut current_right_bank_value = (right_motor_value as f32 / 255.0 * 200.0) as u8;
-            if current_right_bank_value < 1 {
-                current_right_bank_value = 1;
-            }
-                fr_motor_speed = current_right_bank_value;
-                br_motor_speed = current_right_bank_value;
+                let mut current_right_bank_value = (right_motor_value as f32 / 255.0 * 200.0) as u8;
+                current_right_bank_value = 200 - current_right_bank_value;
+                if current_right_bank_value < 1 {
+                    current_right_bank_value = 1;
+                }
+                    fr_motor_speed = current_right_bank_value;
+                    br_motor_speed = current_right_bank_value;
             }            
         }
         chassis_lock = chassis_mutex.lock().await;
