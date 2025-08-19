@@ -6,7 +6,9 @@ use crossterm::{
     event::{Event, KeyCode, poll, read},
     execute,
 };
+#[cfg(target_arch = "arm")]
 use evdev::KeyCode as EvDevKeyCode;
+#[cfg(target_arch = "arm")]
 use evdev::{AbsoluteAxisCode, Device, EventSummary};
 use raspi::chassis::chassis_traits::ChassisTraits;
 use raspi::{
@@ -80,10 +82,13 @@ async fn main() {
 
     let chassis = RealChassis::new();
     let chassis_arc = Arc::new(Mutex::new(chassis));
+    #[cfg(target_arch = "arm")]
+    {
+        clear_screen_and_return_to_zero();
+        wait_for_controller("Wireless Controller", chassis_arc.clone()).await;
+        return;
+    }
 
-    clear_screen_and_return_to_zero();
-    wait_for_controller("Wireless Controller", chassis_arc.clone()).await;
-    return;
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
     let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
     let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
@@ -265,6 +270,7 @@ fn find_controller_path(controller_name: &str) -> Option<String> {
     )
 }
 
+#[cfg(target_arch = "arm")]
 async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<RealChassis>>) {
     let mut device_path = None;
     println!("Please pair the controller...");
@@ -502,6 +508,7 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
     }
 }
 
+#[cfg(target_arch = "arm")]
 async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut controller: Device) {
     'outer: loop {
         let events = controller.fetch_events().unwrap();
