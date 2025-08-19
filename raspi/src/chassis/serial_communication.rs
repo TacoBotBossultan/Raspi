@@ -55,8 +55,7 @@ impl SerialCommunicator {
             if retry_count >= 3 {
                 break;
             }
-
-            let read_result = self.serial_port.read(&mut read_buffer);
+            let read_result = self.serial_port.read_exact(&mut read_buffer);
             retry_count += 1;
             match read_result {
                 Ok(_) => {
