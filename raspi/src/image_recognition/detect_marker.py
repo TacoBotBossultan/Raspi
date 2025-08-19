@@ -6,7 +6,7 @@ import sys
 def detect_yellow_marker(image_path):
 
     real_height = 16.5
-    focal_length = 700  # TODO compute camera calibration  
+    focal_length = 788.78  # TODO compute camera calibration  
 
     image = cv2.imread(image_path)
     if image is None:
@@ -25,6 +25,7 @@ def detect_yellow_marker(image_path):
     if contours:
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
+            print(x, y, w, h)
             if h/2 <= w:
                 continue 
             mask_left = mask_purple[y:y+h, x-9:x-1]
@@ -33,13 +34,11 @@ def detect_yellow_marker(image_path):
                 image_height = h
                 estimated_distance = (real_height * focal_length) / image_height
 
-                stripe_center_y = y + h / 2
-                image_center_y = image.shape[0] / 2
-                pixel_offset_y = stripe_center_y - image_center_y
-
-                angle_rad = math.atan(pixel_offset_y / focal_length)
-
-                angle_deg = math.degrees(angle_rad)
+                stripe_center_x = x + w / 2
+                image_center_x = image.shape[1] / 2
+                pixel_offset_x = stripe_center_x - image_center_x
+                angle_rad = math.atan(pixel_offset_x / focal_length)
+                angle_deg = math.degrees(angle_rad)               
                 stripe = image[y:y+h, x:x+w]
                 cv2.imwrite("/home/pi/Pictures/detected_stripe.jpg", stripe)
                 return estimated_distance, angle_deg
