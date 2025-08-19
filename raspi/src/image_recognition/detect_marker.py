@@ -3,12 +3,12 @@ import cv2
 import math
 import sys
 
-def detect_yellow_marker(image_path):
+def detect_yellow_marker(image):
 
     real_height = 16.5
     focal_length = 788.78  # TODO compute camera calibration  
 
-    image = cv2.imread(image_path)
+    # image = cv2.imread(image_path)
     if image is None:
         raise ValueError("Failed to load image.")
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
