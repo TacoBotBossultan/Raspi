@@ -328,7 +328,14 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             }
             sleep(Duration::from_millis(100)).await;
             let mut chassis_lock = chassis_mutex_clone.lock().await;
-            let position = chassis_lock.get_position().unwrap();
+            let position_response = chassis_lock.get_position();
+            let position = match position_response {
+            Ok(pos) => pos,
+            Err(error) => {
+                            println!("{:?}", error);
+                            continue;
+                        }
+            };
             drop(chassis_lock);
             execute!(
                 stdout(),

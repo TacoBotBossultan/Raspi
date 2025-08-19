@@ -19,7 +19,10 @@ impl SerialCommunicator {
         }
     }
 
-    pub fn send_command(&mut self, command: &SerialCommand) -> SerialResponse {
+    pub fn send_command(
+        &mut self,
+        command: &SerialCommand,
+    ) -> Result<SerialResponse, &'static str> {
         self.send(&command.serialize());
         self.receive()
     }
@@ -45,24 +48,39 @@ impl SerialCommunicator {
         }
     }
 
-    fn receive(&mut self) -> SerialResponse {
-        let mut read_buffer: Vec<u8> = vec![0; self.message_length];
-        let read_result = self.serial_port.read(&mut read_buffer);
+    fn receive(&mut self) -> Result<SerialResponse, &'static str> {
+        let mut retry_count = 0;
+        loop {
+            let mut read_buffer: Vec<u8> = vec![0; self.message_length];
+            if retry_count >= 3 {
+                break;
+            }
 
-        if let Err(error) = read_result {
-            println!(
-                "Error when reading from port {:?}: {:?}",
-                self.serial_port.name(),
-                error
-            );
-        } else if read_result.is_ok() {
-            //print!("Received from port {:?}: ", self.serial_port.name());
-            //for byte in &read_buffer {
-            //    print!(" {:#x}", byte);
-            //}
-            //println!();
+            let read_result = self.serial_port.read(&mut read_buffer);
+            retry_count += 1;
+            match read_result {
+                Ok(_) => {
+                    let parsed_response = SerialResponse::try_from(read_buffer);
+                    match parsed_response {
+                        Ok(response) => return Ok(response),
+                        Err(error) => {
+                            println!(
+                                "Could not parse a response when reading from port {:?}: {:?}",
+                                self.serial_port.name(),
+                                error
+                            );
+                        }
+                    }
+                }
+                Err(error) => {
+                    println!(
+                        "Error when reading from port {:?}: {:?}",
+                        self.serial_port.name(),
+                        error
+                    );
+                }
+            }
         }
-
-        SerialResponse::try_from(read_buffer).expect("Response parsing failure.")
+        Err("Could not receive a response.")
     }
 }

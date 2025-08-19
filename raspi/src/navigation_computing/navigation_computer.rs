@@ -1,7 +1,6 @@
 use std::{io::stdout, sync::Arc, time::Duration};
 
 use crossterm::{cursor::MoveTo, execute, terminal::Clear};
-use pyo3::exceptions::PyEnvironmentError;
 use tokio::{
     spawn,
     sync::{self, Notify},
