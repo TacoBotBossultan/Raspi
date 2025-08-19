@@ -82,9 +82,8 @@ async fn main() {
     let chassis_arc = Arc::new(Mutex::new(chassis));
 
     clear_screen_and_return_to_zero();
-    wait_for_controller("Wireless Controller", chassis_arc).await;
+    wait_for_controller("Wireless Controller", chassis_arc.clone()).await;
     return;
-
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
     let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
     let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
@@ -383,43 +382,42 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         let mut bl_motor_speed: u8 = ALL_STOP;
         let mut br_motor_speed: u8 = ALL_STOP;
 
-            if strafe_left_button_value != IMPOSSIBLE_VALUE {
-                fr_motor_speed = STRAFE_FORWARD_SPEED;
-                fl_motor_speed = STRAFE_BACKWARD_SPEED;
-                bl_motor_speed = STRAFE_FORWARD_SPEED;
-                br_motor_speed = STRAFE_BACKWARD_SPEED;
-            } else if strafe_right_button_value != IMPOSSIBLE_VALUE {
-                fr_motor_speed = STRAFE_BACKWARD_SPEED;
-                fl_motor_speed = STRAFE_FORWARD_SPEED;
-                bl_motor_speed = STRAFE_BACKWARD_SPEED;
-                br_motor_speed = STRAFE_FORWARD_SPEED;
-            } else {
+        if strafe_left_button_value != IMPOSSIBLE_VALUE {
+            fr_motor_speed = STRAFE_FORWARD_SPEED;
+            fl_motor_speed = STRAFE_BACKWARD_SPEED;
+            bl_motor_speed = STRAFE_FORWARD_SPEED;
+            br_motor_speed = STRAFE_BACKWARD_SPEED;
+        } else if strafe_right_button_value != IMPOSSIBLE_VALUE {
+            fr_motor_speed = STRAFE_BACKWARD_SPEED;
+            fl_motor_speed = STRAFE_FORWARD_SPEED;
+            bl_motor_speed = STRAFE_BACKWARD_SPEED;
+            br_motor_speed = STRAFE_FORWARD_SPEED;
+        } else {
             if left_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&left_motor_value) { 
             let mut current_left_bank_value = (left_motor_value as f32 / 255.0 * 200.0) as u8;
             if current_left_bank_value < 1 {
                 current_left_bank_value = 1;
             }
-                    fl_motor_speed = current_left_bank_value;
-                    bl_motor_speed = current_left_bank_value;
+                fl_motor_speed = current_left_bank_value;
+                bl_motor_speed = current_left_bank_value;
             }
             if right_motor_value != IMPOSSIBLE_VALUE && !(DEADZONE_LOWER..=DEADZONE_UPPER).contains(&right_motor_value) {
             let mut current_right_bank_value = (right_motor_value as f32 / 255.0 * 200.0) as u8;
             if current_right_bank_value < 1 {
                 current_right_bank_value = 1;
             }
-
-                    fr_motor_speed = current_right_bank_value;
-                    br_motor_speed = current_right_bank_value;
+                fr_motor_speed = current_right_bank_value;
+                br_motor_speed = current_right_bank_value;
             }            
-                    }
-chassis_lock = chassis_mutex.lock().await;
-            chassis_lock.set_motor_speeds_tzaran(
-                fr_motor_speed,
-                fl_motor_speed,
-                bl_motor_speed,
-                br_motor_speed,
-            );
-            drop(chassis_lock);
+        }
+        chassis_lock = chassis_mutex.lock().await;
+        chassis_lock.set_motor_speeds_tzaran(
+            fr_motor_speed,
+            fl_motor_speed,
+            bl_motor_speed,
+            br_motor_speed,
+        );
+        drop(chassis_lock);
 
         sleep(interval).await;
         execute!(
