@@ -5,8 +5,8 @@ import sys
 
 def detect_yellow_marker(image_path):
 
-    real_height = 96.0
-    focal_length = 1200  # TODO compute camera calibration  
+    real_height = 16.5
+    focal_length = 700  # TODO compute camera calibration  
 
     image = cv2.imread(image_path)
     if image is None:
@@ -14,18 +14,18 @@ def detect_yellow_marker(image_path):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lower_yellow = np.array([20, 100, 100])
     upper_yellow = np.array([35, 255, 255])
-    lower_purple = np.array([125, 50, 50])
+    lower_purple = np.array([100, 60, 30])
     upper_purple = np.array([160, 255, 255]) 
     mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
     
-    cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\mask_yellow2.jpg", mask_yellow)
+    cv2.imwrite("/home/pi/Pictures/mask_yellow.jpg", mask_yellow)
     mask_purple = cv2.inRange(hsv, lower_purple, upper_purple)
-    cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\mask_purple2.jpg", mask_purple)
+    cv2.imwrite("/home/pi/Pictures/mask_purple.jpg", mask_purple)
     contours, _ = cv2.findContours(mask_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            if h/6 <= w:
+            if h/2 <= w:
                 continue 
             mask_left = mask_purple[y:y+h, x-9:x-1]
             mask_right = mask_purple[y:y+h, x+w+1:x+w+9]
@@ -41,7 +41,7 @@ def detect_yellow_marker(image_path):
 
                 angle_deg = math.degrees(angle_rad)
                 stripe = image[y:y+h, x:x+w]
-                cv2.imwrite("C:\\Users\\ahrihorov\\Downloads\\detected_stripe3.jpg", stripe)
+                cv2.imwrite("/home/pi/Pictures/detected_stripe.jpg", stripe)
                 return estimated_distance, angle_deg
 
     return None, None 
