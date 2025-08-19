@@ -20,7 +20,7 @@ impl StoreRouteHelper {
 
     pub fn store_route<const N: usize>(
         &mut self,
-        route: ([(Direction, u32); N], &str, &str),
+        route: ([(Direction, i32); N], &str, &str),
     ) -> Result<String, String> {
         let directions_arr = route.0;
         let start_name = route.1.to_string();
@@ -42,16 +42,16 @@ impl StoreRouteHelper {
     }
 
     // il folosesti si la home gen
-    pub fn store_position(&mut self, position: (Option<&str>, u32, u32, u16)) {
+    pub fn store_position(&mut self, position: (Option<&str>, i32, i32, u16)) {
         self.map_storage.store_position(Position::from(position));
     }
 
-    pub fn define_home(&mut self, position: (u32, u32, u16)) {
+    pub fn define_home(&mut self, position: (i32, i32, u16)) {
         self.store_position((Some("Home"), position.0, position.1, position.2));
     }
 
     pub fn route_arr_to_vecdeque<const N: usize>(
-        directions_arr: [(Direction, u32); N],
+        directions_arr: [(Direction, i32); N],
     ) -> VecDeque<DirectionMove> {
         directions_arr
             .into_iter()
@@ -60,7 +60,7 @@ impl StoreRouteHelper {
     }
 
     pub fn arr_to_position_vector<const N: usize>(
-        dir_arr: [(Option<&str>, u32, u32, u16); N],
+        dir_arr: [(Option<&str>, i32, i32, u16); N],
     ) -> Vec<Position> {
         dir_arr.into_iter().map(Position::from).collect()
     }

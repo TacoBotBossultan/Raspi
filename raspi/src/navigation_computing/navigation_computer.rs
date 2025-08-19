@@ -118,8 +118,8 @@ impl NavigationComputer {
     pub async fn dock(&self, relevement: LeRelevement) {
         let distance = relevement.get_distance();
         let angle = 90.0 - (relevement.get_angle()).abs();
-        let forward_backward_dist = (distance * angle.cos()) as u32;
-        let strafe_dist = (distance * angle.sin()) as u32;
+        let forward_backward_dist = (distance * angle.cos()) as i32;
+        let strafe_dist = (distance * angle.sin()) as i32;
 
         let curr_position = (*self.current_position.lock().await).clone();
         let mut new_x = curr_position.get_x_coordinate();
@@ -187,7 +187,7 @@ impl NavigationComputer {
         *self.target_position.lock().await = new_position.clone();
     }
 
-    pub async fn go_forward_slowly(&self, distance: u32) {
+    pub async fn go_forward_slowly(&self, distance: i32) {
         let curr_pos = (*self.current_position.lock().await).clone();
         let mut new_x = curr_pos.get_x_coordinate();
         let mut new_y = curr_pos.get_y_coordinate();
@@ -202,7 +202,7 @@ impl NavigationComputer {
         *self.target_position.lock().await = new_position.clone();
     }
 
-    pub async fn undock(&self, distance: u32) {
+    pub async fn undock(&self, distance: i32) {
         let curr_pos = (*self.current_position.lock().await).clone();
         let mut new_x = curr_pos.get_x_coordinate();
         let mut new_y = curr_pos.get_y_coordinate();

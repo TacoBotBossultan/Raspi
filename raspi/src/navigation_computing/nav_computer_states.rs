@@ -87,11 +87,11 @@ pub enum Direction {
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct DirectionMove {
     direction_type: Direction,
-    value: u32,
+    value: i32,
 }
 
 impl DirectionMove {
-    pub fn new(direction_type: Direction, value: u32) -> Self {
+    pub fn new(direction_type: Direction, value: i32) -> Self {
         DirectionMove {
             direction_type,
             value,
@@ -102,13 +102,13 @@ impl DirectionMove {
         self.direction_type.clone()
     }
 
-    pub fn get_value(&self) -> u32 {
+    pub fn get_value(&self) -> i32 {
         self.value
     }
 }
 
-impl From<(Direction, u32)> for DirectionMove {
-    fn from(item: (Direction, u32)) -> Self {
+impl From<(Direction, i32)> for DirectionMove {
+    fn from(item: (Direction, i32)) -> Self {
         DirectionMove {
             direction_type: item.0,
             value: item.1,
@@ -396,8 +396,8 @@ impl RunnableNavState for Stopped {
 
         let decelerating_position = Position::create(
             None,
-            decelerating_position_x as u32,
-            decelerating_position_y as u32,
+            decelerating_position_x,
+            decelerating_position_y,
             current_position.get_theta(),
         )
         .unwrap();

@@ -9,8 +9,8 @@ pub struct SetSpeeds {
 }
 #[derive(Debug, Clone)]
 pub struct SetPosition {
-    x_coordinate: u32,
-    y_coordinate: u32,
+    x_coordinate: i32,
+    y_coordinate: i32,
     theta: u16,
 }
 #[derive(Debug, Clone)]
@@ -78,7 +78,7 @@ impl SetSpeeds {
 }
 
 impl SetPosition {
-    pub fn new(x_coordinate: u32, y_coordinate: u32, theta: u16) -> Self {
+    pub fn new(x_coordinate: i32, y_coordinate: i32, theta: u16) -> Self {
         Self {
             x_coordinate,
             y_coordinate,

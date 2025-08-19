@@ -55,16 +55,16 @@ impl Into<u8> for EngineOrder {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
     pub position_name: Option<String>,
-    pub x_coordinate: u32,
-    pub y_coordinate: u32,
+    pub x_coordinate: i32,
+    pub y_coordinate: i32,
     pub theta: u16,
 }
 
 impl Position {
     pub fn create(
         position_name: Option<String>,
-        x_coordinate: u32,
-        y_coordinate: u32,
+        x_coordinate: i32,
+        y_coordinate: i32,
         orientation: u16,
     ) -> Result<Position, String> {
         if orientation > 360 {
@@ -88,11 +88,11 @@ impl Position {
         self.position_name.clone()
     }
 
-    pub fn get_x_coordinate(&self) -> u32 {
+    pub fn get_x_coordinate(&self) -> i32 {
         self.x_coordinate
     }
 
-    pub fn get_y_coordinate(&self) -> u32 {
+    pub fn get_y_coordinate(&self) -> i32 {
         self.y_coordinate
     }
 
@@ -128,8 +128,8 @@ impl Position {
     }
 }
 
-impl From<(Option<&str>, u32, u32, u16)> for Position {
-    fn from(item: (Option<&str>, u32, u32, u16)) -> Self {
+impl From<(Option<&str>, i32, i32, u16)> for Position {
+    fn from(item: (Option<&str>, i32, i32, u16)) -> Self {
         Position {
             position_name: item.0.map(|str| str.to_string()),
             x_coordinate: item.1,

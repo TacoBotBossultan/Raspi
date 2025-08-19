@@ -1,12 +1,12 @@
 #[derive(PartialEq, Eq)]
 pub struct HavePositionResponse {
-    pub x: u32,
-    pub y: u32,
+    pub x: i32,
+    pub y: i32,
     pub theta: u16,
 }
 
 impl HavePositionResponse {
-    pub fn new(x: u32, y: u32, theta: u16) -> Self {
+    pub fn new(x: i32, y: i32, theta: u16) -> Self {
         Self { x, y, theta }
     }
 }
@@ -35,8 +35,8 @@ impl TryFrom<Vec<u8>> for SerialResponse {
                 let theta_bytes = firmware_response[9..=10]
                     .try_into()
                     .expect("Couldn't slice and convert the theta position.");
-                let x = u32::from_le_bytes(x_bytes);
-                let y = u32::from_le_bytes(y_bytes);
+                let x = i32::from_le_bytes(x_bytes);
+                let y = i32::from_le_bytes(y_bytes);
                 let theta = u16::from_le_bytes(theta_bytes);
                 Ok(SerialResponse::HavePosition(HavePositionResponse::new(
                     x, y, theta,

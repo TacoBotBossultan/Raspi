@@ -27,8 +27,8 @@ pub struct MissionRequest {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct DefineHome {
-    home_x: u32,
-    home_y: u32,
+    home_x: i32,
+    home_y: i32,
     home_theta: u16,
 }
 
@@ -93,7 +93,7 @@ impl StoreRoute {
 }
 
 impl DefineHome {
-    pub fn new(home_x: u32, home_y: u32, home_theta: u16) -> DefineHome {
+    pub fn new(home_x: i32, home_y: i32, home_theta: u16) -> DefineHome {
         print!("Define Home Request!");
         DefineHome {
             home_x,
@@ -102,10 +102,10 @@ impl DefineHome {
         }
     }
 
-    pub fn get_x(&self) -> u32 {
+    pub fn get_x(&self) -> i32 {
         self.home_x
     }
-    pub fn get_y(&self) -> u32 {
+    pub fn get_y(&self) -> i32 {
         self.home_y
     }
     pub fn get_theta(&self) -> u16 {

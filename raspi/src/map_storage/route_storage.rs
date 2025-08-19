@@ -10,9 +10,9 @@ pub fn move_to_next_position(
     starting_position: Position,
     direction_move: DirectionMove,
 ) -> Result<Position, String> {
-    let mut x_coord: u32 = starting_position.get_x_coordinate();
-    let mut y_coord: u32 = starting_position.get_y_coordinate();
-    let mut theta: u32 = starting_position.get_theta() as u32;
+    let mut x_coord: i32 = starting_position.get_x_coordinate();
+    let mut y_coord: i32 = starting_position.get_y_coordinate();
+    let mut theta: u16 = starting_position.get_theta() as u16;
 
     match starting_position.get_theta() {
         0 => match direction_move.get_direction_type() {
@@ -29,10 +29,10 @@ pub fn move_to_next_position(
                 y_coord = starting_position.get_y_coordinate() - direction_move.get_value()
             }
             Direction::RotateRight => {
-                theta = (starting_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (starting_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::RotateLeft => {
-                theta = (starting_position.get_theta() as u32 + (360 - direction_move.get_value()))
+                theta = (starting_position.get_theta() + (360 - direction_move.get_value() as u16))
                     % 360
             }
             Direction::NoMovement => (),
@@ -52,10 +52,10 @@ pub fn move_to_next_position(
                 x_coord = starting_position.get_x_coordinate() - direction_move.get_value()
             }
             Direction::RotateRight => {
-                theta = (starting_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (starting_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::RotateLeft => {
-                theta = (starting_position.get_theta() as u32 + (360 - direction_move.get_value()))
+                theta = (starting_position.get_theta() + (360 - direction_move.get_value() as u16))
                     % 360
             }
             Direction::NoMovement => {}
@@ -75,10 +75,10 @@ pub fn move_to_next_position(
                 y_coord = starting_position.get_y_coordinate() + direction_move.get_value()
             }
             Direction::RotateRight => {
-                theta = (starting_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (starting_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::RotateLeft => {
-                theta = (starting_position.get_theta() as u32 + (360 - direction_move.get_value()))
+                theta = (starting_position.get_theta() + (360 - direction_move.get_value() as u16))
                     % 360
             }
             Direction::NoMovement => {}
@@ -98,10 +98,10 @@ pub fn move_to_next_position(
                 x_coord = starting_position.get_x_coordinate() + direction_move.get_value()
             }
             Direction::RotateRight => {
-                theta = (starting_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (starting_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::RotateLeft => {
-                theta = (starting_position.get_theta() as u32 + (360 - direction_move.get_value()))
+                theta = (starting_position.get_theta() + (360 - direction_move.get_value() as u16))
                     % 360
             }
             Direction::NoMovement => {}
@@ -116,9 +116,9 @@ pub fn move_to_previous_position(
     ending_position: Position,
     direction_move: DirectionMove,
 ) -> Result<Position, String> {
-    let mut x_coord: u32 = ending_position.get_x_coordinate();
-    let mut y_coord: u32 = ending_position.get_y_coordinate();
-    let mut theta: u32 = ending_position.get_theta() as u32;
+    let mut x_coord = ending_position.get_x_coordinate();
+    let mut y_coord = ending_position.get_y_coordinate();
+    let mut theta = ending_position.get_theta();
 
     match ending_position.get_theta() {
         0 => match direction_move.get_direction_type() {
@@ -136,10 +136,10 @@ pub fn move_to_previous_position(
             }
             Direction::RotateRight => {
                 theta =
-                    (ending_position.get_theta() as u32 + (360 - direction_move.get_value())) % 360
+                    (ending_position.get_theta() + (360 - direction_move.get_value() as u16)) % 360
             }
             Direction::RotateLeft => {
-                theta = (ending_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (ending_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::NoMovement => {}
         },
@@ -159,10 +159,10 @@ pub fn move_to_previous_position(
             }
             Direction::RotateRight => {
                 theta =
-                    (ending_position.get_theta() as u32 + (360 - direction_move.get_value())) % 360
+                    (ending_position.get_theta() + (360 - direction_move.get_value() as u16)) % 360
             }
             Direction::RotateLeft => {
-                theta = (ending_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (ending_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::NoMovement => {}
         },
@@ -182,10 +182,10 @@ pub fn move_to_previous_position(
             }
             Direction::RotateRight => {
                 theta =
-                    (ending_position.get_theta() as u32 + (360 - direction_move.get_value())) % 360
+                    (ending_position.get_theta() + (360 - direction_move.get_value() as u16)) % 360
             }
             Direction::RotateLeft => {
-                theta = (ending_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (ending_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::NoMovement => {}
         },
@@ -205,10 +205,10 @@ pub fn move_to_previous_position(
             }
             Direction::RotateRight => {
                 theta =
-                    (ending_position.get_theta() as u32 + (360 - direction_move.get_value())) % 360
+                    (ending_position.get_theta() + (360 - direction_move.get_value() as u16)) % 360
             }
             Direction::RotateLeft => {
-                theta = (ending_position.get_theta() as u32 + direction_move.get_value()) % 360
+                theta = (ending_position.get_theta() + direction_move.get_value() as u16) % 360
             }
             Direction::NoMovement => {}
         },
@@ -252,8 +252,8 @@ impl PositionStorage {
 
     pub fn search_by_coordinates(
         &self,
-        position_x: u32,
-        position_y: u32,
+        position_x: i32,
+        position_y: i32,
         position_theta: u16,
     ) -> Result<Position, String> {
         let positions_clone = self.positions.clone();
