@@ -137,16 +137,28 @@ class StoreRoutePage(tk.Frame):
             self.value_entry.delete(0, tk.END)  
 
     def on_stop(self):
-        if self.direction_label: self.direction_label.grid_forget()
-        if self.direction_entry: self.direction_entry.grid_forget()
-        if self.value_label: self.value_label.grid_forget()
-        if self.value_entry: self.value_entry.grid_forget()
-        if self.submit_btn: self.submit_btn.grid_forget()
-        if self.stop_btn: self.stop_btn.grid_forget()
+        if self.direction_label: 
+            self.direction_label.destroy()
+            self.direction_label = None
+        if self.direction_entry: 
+            self.direction_entry.destroy()
+            self.direction_entry = None
+        if self.value_label: 
+            self.value_label.destroy()
+            self.value_label = None
+        if self.value_entry: 
+            self.value_entry.destroy()
+            self.value_entry = None
+        if self.submit_btn: 
+            self.submit_btn.destroy()
+            self.submit_btn = None
+        if self.stop_btn: 
+            self.stop_btn.destroy()
+            self.stop_btn = None
 
-        first_text = self.starting_position_field.get()
-        second_text = self.destination_position_field.get()
-        summary = f"Summary:\n\nStarting position: {first_text}\nDestination position: {second_text}\n\nRoute:\n"
+        starting_position_text = self.starting_position_field.get()
+        destination_position_text = self.destination_position_field.get()
+        summary = f"Summary:\n\n\tStarting position: {starting_position_text}\n\tDestination position: {destination_position_text}\n\n\tRoute:\n"
         for i, (opt, txt) in enumerate(self.submitted_texts, start=1):
             summary += f"  Route step {i}: {opt} | {txt}\n"
 
