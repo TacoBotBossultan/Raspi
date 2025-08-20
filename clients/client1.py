@@ -24,12 +24,11 @@ def send_request(sock, request_data):
 
     except json.JSONDecodeError as e:
         print(f"[ERROR] N-am putut decoda respunsul de json: {e}")
-        print(f"Raspunsu : {response_bytes.decode('utf-8')}")
+        #print(f"Raspunsu : {response_bytes.decode('utf-8')}")
         return None
     except Exception as e:
         print(f"[ERROR] EROAREE!: {e}")
         return None
-
 
 def main():
     try:

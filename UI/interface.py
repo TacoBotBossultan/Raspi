@@ -1,5 +1,11 @@
 import tkinter as tk
-from tkinter import ttk  
+from tkinter import ttk
+from tkinter import messagebox
+import clients.client1 as sr 
+import socket
+import time
+
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -65,11 +71,37 @@ class DefineHomePage(tk.Frame):
         cancel_btn.pack(side="left", padx=20, pady=10)
 
     def on_define_home(self):
+        try:
+            x_text = int(self.x_entry.get())
+            y_text = int(self.y_entry.get())
+            theta_text = int(self.theta_entry.get())
+            coordinates_dict = { "home_x": x_text, "home_y": y_text, "home_theta": theta_text}
+            define_home_request = {"DefineHome" : coordinates_dict}
+        
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
+                s.connect((sr.HOST,sr.PORT))
+                print("CONNECTION SUCCESSFUL!!")
+
+                sr.send_request(s, define_home_request)
+                time.sleep(1)
+
+            self.result_label.config(text="✅ You defined the home")
+
+        except ValueError:
+            messagebox.showerror("Error", "The coordinates should be integers!")
+
+        except ConnectionRefusedError:
+            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
 
-        self.result_label.config(text="✅ You defined the home")
 
     def on_cancel(self):
         self.x_entry.delete(0, tk.END)
@@ -77,7 +109,6 @@ class DefineHomePage(tk.Frame):
         self.theta_entry.delete(0, tk.END)
 
         self.result_label.config(text="")
-    
 
 class StoreRoutePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -114,7 +145,7 @@ class StoreRoutePage(tk.Frame):
                 "Forward", "Backward", "Right",
                 "Left", "Rotate Right", "Rotate Left"
             ])
-            self.direction_entry.current(0)  
+            self.direction_entry.set("Choose a direction...")
             self.direction_entry.grid(row=3, column=1, padx=10, pady=5)
 
             self.value_label = tk.Label(self, text="Value (in mm):")
@@ -160,7 +191,7 @@ class StoreRoutePage(tk.Frame):
         destination_position_text = self.destination_position_field.get()
         summary = f"Summary:\n\n\tStarting position: {starting_position_text}\n\tDestination position: {destination_position_text}\n\n\tRoute:\n"
         for i, (opt, txt) in enumerate(self.submitted_texts, start=1):
-            summary += f"  Route step {i}: {opt} | {txt}\n"
+            summary += f"  \t\tRoute step {i}: {opt} | {txt}\n"
 
         self.summary_label.config(text=summary)
         self.summary_label.grid(row=6, column=0, columnspan=2, pady=10)
@@ -178,9 +209,35 @@ class StoreRoutePage(tk.Frame):
         self.summary_label.grid_forget()
         self.cancel_btn.grid_forget()
         self.save_btn.grid_forget()
-
+    
     def on_save(self):
+        try:
+            starting_position_text = self.starting_position_field.get()
+            destination_position_text = self.destination_position_field.get()
+            route_list = []
+            for i, (opt, txt) in enumerate(self.submitted_texts, start=1):
+                current_dict = {"direction_type" :  opt  ,  "value" : txt}
+                route_list.append(current_dict)
+            route_dict = {"starting_position_name" : starting_position_text, "route" : route_list, "destination_position_name" : destination_position_text}
+            store_route_request = {"StoreRoute" : route_dict}
+ 
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
+                s.connect((sr.HOST,sr.PORT))
+                print("CONNECTION SUCCESSFUL!!")
+
+                sr.send_request(s, store_route_request)
+                time.sleep(1)
+
+        except ConnectionRefusedError:
+            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
         self.on_cancel()
+
 
 class TakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -204,14 +261,33 @@ class TakePhotoPage(tk.Frame):
         self.result_label.grid(row=3, column=0, columnspan=2, pady=10)
 
     def on_submit(self):
-        destination_text = self.destination_entry.get()
-        self.result_label.config(text=f"Going to {destination_text} to take a photo!")
+        try:
+            start_text = self.starting_entry.get()
+            dest_text = self.destination_entry.get()
+            route_dict = {"start_name" : start_text, "destination_name" : dest_text}
+            mission_request_dict = {"action" : "TakePhoto", "route" : route_dict}
+            mission_request = {"MissionRequest" : mission_request_dict}
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
+                s.connect((sr.HOST,sr.PORT))
+                print("CONNECTION SUCCESSFUL!!")
+
+                sr.send_request(s, mission_request)
+                time.sleep(1)
+
+        except ConnectionRefusedError:
+            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
         self.starting_entry.delete(0, tk.END)
         self.destination_entry.delete(0, tk.END)
 
     def on_cancel(self):
         self.starting_entry.delete(0, tk.END)
         self.destination_entry.delete(0, tk.END)
+
 
 if __name__ == "__main__":
     app = App()
