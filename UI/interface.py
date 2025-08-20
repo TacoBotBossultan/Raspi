@@ -185,9 +185,33 @@ class StoreRoutePage(tk.Frame):
 class TakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        label = tk.Label(self, text="Here is take photo page", font=("Arial", 18))
-        label.pack(pady=20)
 
+        tk.Label(self, text="Starting position:").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        self.starting_entry = tk.Entry(self, width=30)
+        self.starting_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        tk.Label(self, text="Destination position:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        self.destination_entry = tk.Entry(self, width=30)
+        self.destination_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        self.go_and_photo_btn = tk.Button(self, text="Go and take a photo", command=self.on_submit)
+        self.go_and_photo_btn.grid(row=2, column=0, padx=10, pady=10)
+
+        self.cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+        self.cancel_btn.grid(row=2, column=1, padx=10, pady=10)
+
+        self.result_label = tk.Label(self, text="", fg="blue", font=("Arial", 12))
+        self.result_label.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def on_submit(self):
+        destination_text = self.destination_entry.get()
+        self.result_label.config(text=f"Going to {destination_text} to take a photo!")
+        self.starting_entry.delete(0, tk.END)
+        self.destination_entry.delete(0, tk.END)
+
+    def on_cancel(self):
+        self.starting_entry.delete(0, tk.END)
+        self.destination_entry.delete(0, tk.END)
 
 if __name__ == "__main__":
     app = App()
