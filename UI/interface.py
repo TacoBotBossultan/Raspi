@@ -5,7 +5,7 @@ import clients.client1 as sr
 import socket
 import time
 
-
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 class App(tk.Tk):
     def __init__(self):
@@ -16,9 +16,11 @@ class App(tk.Tk):
         self.container = tk.Frame(self)
         self.container.pack(fill="both", expand=True)
 
+        self.conn = self.connect_to_server()
+
         self.pages = {}
 
-        for P in (DefineHomePage, StoreRoutePage, TakePhotoPage):
+        for P in (DefineHomePage, StoreRoutePage, GoAndTakePhotoPage, TakePhotoPage):
             page_name = P.__name__
             frame = P(parent=self.container, controller=self)
             self.pages[page_name] = frame
@@ -30,16 +32,33 @@ class App(tk.Tk):
         define_home_button = tk.Button(nav_frame, text="Define home", command=lambda: self.show_page("DefineHomePage"))
         store_route_button = tk.Button(nav_frame, text="Store route", command=lambda: self.show_page("StoreRoutePage"))
         take_photo_button = tk.Button(nav_frame, text="Take photo", command=lambda: self.show_page("TakePhotoPage"))
+        go_and_take_photo_button = tk.Button(nav_frame, text="Go and take photo", command=lambda: self.show_page("GoAndTakePhotoPage"))
 
         define_home_button.pack(side="left", expand=True, fill="x")
         store_route_button.pack(side="left", expand=True, fill="x")
         take_photo_button.pack(side="left", expand=True, fill="x")
+        go_and_take_photo_button.pack(side="left", expand=True, fill="x")
 
         self.show_page("DefineHomePage")  
 
     def show_page(self, page_name):
         page = self.pages[page_name]
         page.tkraise()
+
+    def connect_to_server(self):
+        try:
+            with s:
+                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
+                s.connect((sr.HOST,sr.PORT))
+                print("CONNECTION SUCCESSFUL!!")
+
+        except ConnectionRefusedError:
+            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
 
 
 class DefineHomePage(tk.Frame):
@@ -77,22 +96,13 @@ class DefineHomePage(tk.Frame):
             theta_text = int(self.theta_entry.get())
             coordinates_dict = { "home_x": x_text, "home_y": y_text, "home_theta": theta_text}
             define_home_request = {"DefineHome" : coordinates_dict}
-        
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
-                s.connect((sr.HOST,sr.PORT))
-                print("CONNECTION SUCCESSFUL!!")
-
-                sr.send_request(s, define_home_request)
-                time.sleep(1)
+            sr.send_request(s, define_home_request)
+            time.sleep(1)
 
             self.result_label.config(text="✅ You defined the home")
 
         except ValueError:
             messagebox.showerror("Error", "The coordinates should be integers!")
-
-        except ConnectionRefusedError:
-            messagebox.showerror("Error", "Connection refused! Are you dumb?")
 
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
@@ -221,16 +231,8 @@ class StoreRoutePage(tk.Frame):
             route_dict = {"starting_position_name" : starting_position_text, "route" : route_list, "destination_position_name" : destination_position_text}
             store_route_request = {"StoreRoute" : route_dict}
  
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
-                s.connect((sr.HOST,sr.PORT))
-                print("CONNECTION SUCCESSFUL!!")
-
-                sr.send_request(s, store_route_request)
-                time.sleep(1)
-
-        except ConnectionRefusedError:
-            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+            sr.send_request(s, store_route_request)
+            time.sleep(1)
 
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
@@ -239,7 +241,7 @@ class StoreRoutePage(tk.Frame):
         self.on_cancel()
 
 
-class TakePhotoPage(tk.Frame):
+class GoAndTakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
@@ -267,16 +269,8 @@ class TakePhotoPage(tk.Frame):
             route_dict = {"start_name" : start_text, "destination_name" : dest_text}
             mission_request_dict = {"action" : "TakePhoto", "route" : route_dict}
             mission_request = {"MissionRequest" : mission_request_dict}
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
-                s.connect((sr.HOST,sr.PORT))
-                print("CONNECTION SUCCESSFUL!!")
-
-                sr.send_request(s, mission_request)
-                time.sleep(1)
-
-        except ConnectionRefusedError:
-            messagebox.showerror("Error", "Connection refused! Are you dumb?")
+            sr.send_request(s, mission_request)
+            time.sleep(1)
 
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
@@ -287,6 +281,20 @@ class TakePhotoPage(tk.Frame):
     def on_cancel(self):
         self.starting_entry.delete(0, tk.END)
         self.destination_entry.delete(0, tk.END)
+
+class TakePhotoPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.photo_btn = tk.Button(self, text="Take a photo", command=self.on_take_photo)
+        self.photo_btn.grid(row=2, column=0, padx=10, pady=10)
+
+    def on_take_photo(self):
+        try:
+            photo_request = {"Photo": None}
+            sr.send_request(s, photo_request)
+            time.sleep(1)
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
 
 
 if __name__ == "__main__":
