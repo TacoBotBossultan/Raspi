@@ -10,17 +10,21 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        self.conn = self.connect_to_server()
+        if not self.conn:
+            self.destroy()
+            return
+        
         self.title("TacoBot user interface")
         self.geometry("1000x700")
 
         self.container = tk.Frame(self)
         self.container.pack(fill="both", expand=True)
 
-        self.conn = self.connect_to_server()
-
         self.pages = {}
 
-        for P in (DefineHomePage, StoreRoutePage, GoAndTakePhotoPage, TakePhotoPage):
+        for P in (DefineHomePage, StoreRoutePage, GoAndTakePhotoPage, TakePhotoPage, GoToPositionPage, InsertRackPage, RemoveRackPage):
             page_name = P.__name__
             frame = P(parent=self.container, controller=self)
             self.pages[page_name] = frame
@@ -33,11 +37,17 @@ class App(tk.Tk):
         store_route_button = tk.Button(nav_frame, text="Store route", command=lambda: self.show_page("StoreRoutePage"))
         take_photo_button = tk.Button(nav_frame, text="Take photo", command=lambda: self.show_page("TakePhotoPage"))
         go_and_take_photo_button = tk.Button(nav_frame, text="Go and take photo", command=lambda: self.show_page("GoAndTakePhotoPage"))
+        go_to_position_button = tk.Button(nav_frame, text="Go to position", command=lambda: self.show_page("GoToPositionPage"))
+        insert_rack_button = tk.Button(nav_frame, text="Insert Rack", command=lambda: self.show_page("InsertRackPage"))
+        remove_rack_button = tk.Button(nav_frame, text="Remove Rack", command=lambda: self.show_page("RemoveRackPage"))
 
         define_home_button.pack(side="left", expand=True, fill="x")
         store_route_button.pack(side="left", expand=True, fill="x")
         take_photo_button.pack(side="left", expand=True, fill="x")
         go_and_take_photo_button.pack(side="left", expand=True, fill="x")
+        go_to_position_button.pack(side="left", expand=True, fill="x")
+        insert_rack_button.pack(side="left", expand=True, fill="x")
+        remove_rack_button.pack(side="left", expand=True, fill="x")
 
         self.show_page("DefineHomePage")  
 
@@ -51,12 +61,15 @@ class App(tk.Tk):
                 print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
                 s.connect((sr.HOST,sr.PORT))
                 print("CONNECTION SUCCESSFUL!!")
+            return s
 
         except ConnectionRefusedError:
             messagebox.showerror("Error", "Connection refused! Are you dumb?")
+            return None
 
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
+           return None
 
 
 
@@ -282,6 +295,7 @@ class GoAndTakePhotoPage(tk.Frame):
         self.starting_entry.delete(0, tk.END)
         self.destination_entry.delete(0, tk.END)
 
+
 class TakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -295,6 +309,185 @@ class TakePhotoPage(tk.Frame):
             time.sleep(1)
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
+
+
+class GoToPositionPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.x_label = tk.Label(self, text="x coordinate:", font=("Arial", 12))
+        self.y_label = tk.Label(self, text="y coordinate:", font=("Arial", 12))
+        self.theta_label = tk.Label(self, text="theta:", font=("Arial", 12))
+
+        self.x_entry = tk.Entry(self, width=30)
+        self.y_entry = tk.Entry(self, width=30)
+        self.theta_entry = tk.Entry(self, width=30)
+
+        self.x_label.pack(padx=10, pady=(10, 0))
+        self.x_entry.pack(padx=10, pady=5)
+        self.y_label.pack(padx=10, pady=(10, 0))
+        self.y_entry.pack(padx=10, pady=5)
+        self.theta_label.pack(padx=10, pady=(10, 0))
+        self.theta_entry.pack(padx= 10, pady=5)
+
+        go_to_position_btn = tk.Button(self, text="  Go  ", command=self.on_go_to_position)
+        cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+
+        go_to_position_btn.pack(side="left", padx=20, pady=10)
+        cancel_btn.pack(side="left", padx=20, pady=10)
+
+    def on_go_to_position(self):
+        try:
+            x_text = int(self.x_entry.get())
+            y_text = int(self.y_entry.get())
+            theta_text = int(self.theta_entry.get())
+            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
+            go_to_position_dict = {"action" : "GoToPosition", "position" : coordinates_dict}
+            go_to_position_request = {"MissionRequest" : go_to_position_dict}
+            sr.send_request(s, go_to_position_request)
+            time.sleep(1)
+
+        except ValueError:
+            messagebox.showerror("Error", "The coordinates should be integers!")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
+    def on_cancel(self):
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
+class InsertRackPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.x_label = tk.Label(self, text="x coordinate:", font=("Arial", 12))
+        self.y_label = tk.Label(self, text="y coordinate:", font=("Arial", 12))
+        self.theta_label = tk.Label(self, text="theta:", font=("Arial", 12))
+        self.lane_number_label = tk.Label(self, text="lane number:", font=("Arial", 12))
+
+        self.x_entry = tk.Entry(self, width=30)
+        self.y_entry = tk.Entry(self, width=30)
+        self.theta_entry = tk.Entry(self, width=30)
+        self.lane_number_entry = tk.Entry(self, width=30)
+
+        self.x_label.pack(padx=10, pady=(10, 0))
+        self.x_entry.pack(padx=10, pady=5)
+        self.y_label.pack(padx=10, pady=(10, 0))
+        self.y_entry.pack(padx=10, pady=5)
+        self.theta_label.pack(padx=10, pady=(10, 0))
+        self.theta_entry.pack(padx= 10, pady=5)
+        self.lane_number_label.pack(padx=10, pady=(10, 0))
+        self.lane_number_entry.pack(padx= 10, pady=5)
+
+
+        insert_rack_btn = tk.Button(self, text="Insert Rack", command=self.on_insert_rack)
+        cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+
+        insert_rack_btn.pack(side="left", padx=20, pady=10)
+        cancel_btn.pack(side="left", padx=20, pady=10)
+
+    def on_insert_rack(self):
+        try:
+            x_text = int(self.x_entry.get())
+            y_text = int(self.y_entry.get())
+            theta_text = int(self.theta_entry.get())
+            lane_number_text = int(self.lane_number_entry.get())
+
+            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
+            insert_rack_dict = {"action" : "InsertRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
+            insert_rack_request = {"MissionRequest" : insert_rack_dict}
+            sr.send_request(s, insert_rack_request)
+            time.sleep(1)
+
+        except ValueError:
+            messagebox.showerror("Error", "The coordinates should be integers!")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
+    def on_cancel(self):
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
+
+class RemoveRackPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.x_label = tk.Label(self, text="x coordinate:", font=("Arial", 12))
+        self.y_label = tk.Label(self, text="y coordinate:", font=("Arial", 12))
+        self.theta_label = tk.Label(self, text="theta:", font=("Arial", 12))
+        self.lane_number_label = tk.Label(self, text="lane number:", font=("Arial", 12))
+
+        self.x_entry = tk.Entry(self, width=30)
+        self.y_entry = tk.Entry(self, width=30)
+        self.theta_entry = tk.Entry(self, width=30)
+        self.lane_number_entry = tk.Entry(self, width=30)
+
+        self.x_label.pack(padx=10, pady=(10, 0))
+        self.x_entry.pack(padx=10, pady=5)
+        self.y_label.pack(padx=10, pady=(10, 0))
+        self.y_entry.pack(padx=10, pady=5)
+        self.theta_label.pack(padx=10, pady=(10, 0))
+        self.theta_entry.pack(padx= 10, pady=5)
+        self.lane_number_label.pack(padx=10, pady=(10, 0))
+        self.lane_number_entry.pack(padx= 10, pady=5)
+
+
+        remove_rack_btn = tk.Button(self, text="Remove Rack", command=self.on_remove_rack)
+        cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+
+        remove_rack_btn.pack(side="left", padx=20, pady=10)
+        cancel_btn.pack(side="left", padx=20, pady=10)
+
+    def on_remove_rack(self):
+        try:
+            x_text = int(self.x_entry.get())
+            y_text = int(self.y_entry.get())
+            theta_text = int(self.theta_entry.get())
+            lane_number_text = int(self.lane_number_entry.get())
+
+            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
+            remove_rack_dict = {"action" : "RemoveRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
+            remove_rack_request = {"MissionRequest" : remove_rack_dict}
+            sr.send_request(s, remove_rack_request)
+            time.sleep(1)
+
+        except ValueError:
+            messagebox.showerror("Error", "The coordinates should be integers!")
+
+        except Exception as e:
+           messagebox.showerror("Error", f"Error: {e}")
+
+
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
+    def on_cancel(self):
+        self.x_entry.delete(0, tk.END)
+        self.y_entry.delete(0, tk.END)
+        self.theta_entry.delete(0, tk.END)
+
+
 
 
 if __name__ == "__main__":
