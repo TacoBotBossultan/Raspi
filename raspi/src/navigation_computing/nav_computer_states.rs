@@ -405,9 +405,9 @@ impl RunnableNavState for Stopped {
         let difference_theta =
             target_position.get_theta() as i32 - current_position.get_theta() as i32;
         let decelerating_position_x: i32 =
-            8 * (difference_x) / 10 + current_position.get_x_coordinate();
+            6 * (difference_x) / 10 + current_position.get_x_coordinate();
         let decelerating_position_y: i32 =
-            8 * (difference_y) / 10 + current_position.get_y_coordinate();
+            6 * (difference_y) / 10 + current_position.get_y_coordinate();
 
         let decelerating_position = Position::create(
             None,
