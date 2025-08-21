@@ -8,7 +8,7 @@ use crossterm::{
 };
 use evdev::KeyCode as EvDevKeyCode;
 use evdev::{AbsoluteAxisCode, Device, EventSummary};
-use raspi::chassis::chassis_traits::ChassisTraits;
+use raspi::chassis::chassis_traits::{ChassisTraits, Position};
 use raspi::{
     chassis::real_chassis::RealChassis,
     map_storage::route_storage::MapStorage,
@@ -32,7 +32,7 @@ static PRE_APPEND_STR: &str = "[MAIN]";
 const STRAFE_FORWARD_SPEED: u8 = 110;
 const STRAFE_BACKWARD_SPEED: u8 = 90;
 const DEAD_SLOW_AHEAD: u8 = 102;
-const UNDEAD_SLOW_AHEAD: u8 = 104;
+const UNDEAD_SLOW_AHEAD: u8 = 103;
 const DEADZONE_LOWER: i32 = 115;
 const DEADZONE_UPPER: i32 = 135;
 const ALL_STOP: u8 = 100;
@@ -315,6 +315,10 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             }
         }
     }
+
+    let mut chassis_lock = chassis_mutex.lock().await;
+    chassis_lock.set_position(Position::create(None, 69, 69, 69).unwrap());
+    drop(chassis_lock);
 
     clear_screen_and_return_to_zero();
     execute!(
