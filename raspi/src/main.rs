@@ -31,6 +31,8 @@ use tokio::{
 static PRE_APPEND_STR: &str = "[MAIN]";
 const STRAFE_FORWARD_SPEED: u8 = 110;
 const STRAFE_BACKWARD_SPEED: u8 = 90;
+const DEAD_SLOW_AHEAD: u8 = 102;
+const UNDEAD_SLOW_AHEAD: u8 = 104;
 const DEADZONE_LOWER: i32 = 115;
 const DEADZONE_UPPER: i32 = 135;
 const ALL_STOP: u8 = 100;
@@ -47,6 +49,8 @@ pub struct ControllerEvents {
     pub continue_control_button_value: i32,
     pub strafe_left_button_value: i32,
     pub strafe_right_button_value: i32,
+    pub lane_seek_button_value: i32,
+    pub quit_after_controller: bool,
     pub should_continue: bool,
 }
 
@@ -63,6 +67,8 @@ impl ControllerEvents {
             continue_control_button_value: 6969,
             strafe_left_button_value: 6969,
             strafe_right_button_value: 6969,
+            lane_seek_button_value: 6969,
+            quit_after_controller: false,
             should_continue: true,
         }
     }
@@ -81,8 +87,9 @@ async fn main() {
     let chassis = RealChassis::new();
     let chassis_arc = Arc::new(Mutex::new(chassis));
     clear_screen_and_return_to_zero();
-    wait_for_controller("Wireless Controller", chassis_arc.clone()).await;
-    return;
+    if wait_for_controller("Wireless Controller", chassis_arc.clone()).await {
+        return;
+    }
 
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
     let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
@@ -265,7 +272,7 @@ fn find_controller_path(controller_name: &str) -> Option<String> {
     )
 }
 
-async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<RealChassis>>) {
+async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<RealChassis>>) -> bool {
     let mut device_path = None;
     println!("Please pair the controller...");
 
@@ -274,24 +281,35 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
     }
 
     let device_path = device_path.unwrap();
-    println!("Device path is:{} ", device_path);
+    println!("Device path is: {} ", device_path);
 
     let mut device = Device::open(&device_path);
     let path = "/dev/input/".to_owned() + &device_path;
     while device.is_err() {
         device = Device::open(&path);
     }
-
-    println!("Press (X) to continue...");
+    println!("Press (X) or triangle to continue...");
+    println!("Pressing (X) will continue running the app after you're done with the controller, pressing the triangle button will quit the app when you're done with the controller.");
 
     let mut controller = device.unwrap();
     let interval = Duration::from_millis(20);
+    let events = ControllerEvents::new();
+    let events_mutex = Arc::new(Mutex::new(events));
+    let events_mutex_clone = events_mutex.clone();
+    let events_mutex_cloner = events_mutex.clone();
 
     'outer: loop {
+        sleep(interval).await;
         for ev in controller.fetch_events().unwrap() {
             let EventSummary::Key(_, code, _) = ev.destructure() else {
                 continue;
             };
+            if code == EvDevKeyCode::BTN_NORTH {
+                let mut mutex_guard = events_mutex.lock().await;
+                mutex_guard.quit_after_controller = true;
+                drop(mutex_guard);
+                break 'outer;
+            }
             if code == EvDevKeyCode::BTN_SOUTH {
                 break 'outer;
             }
@@ -307,10 +325,6 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
     .unwrap();
     execute!(stdout(), MoveTo(0, 0), Print("You have control.")).unwrap();
 
-    let events = ControllerEvents::new();
-    let events_mutex = Arc::new(Mutex::new(events));
-    let events_mutex_clone = events_mutex.clone();
-    let events_mutex_cloner = events_mutex.clone();
     let chassis_mutex_clone = chassis_mutex.clone();
     let join_handle = spawn(async move {
         parse_events(events_mutex_clone, controller).await;
@@ -360,6 +374,7 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         let continue_button_value = mutex_guard.continue_control_button_value;
         let strafe_left_button_value = mutex_guard.strafe_left_button_value;
         let strafe_right_button_value = mutex_guard.strafe_right_button_value;
+        let lane_seek_button_value = mutex_guard.lane_seek_button_value;
 
         mutex_guard.insert_rack_button_value = IMPOSSIBLE_VALUE;
         mutex_guard.extract_rack_button_value = IMPOSSIBLE_VALUE;
@@ -388,8 +403,12 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         let mut fl_motor_speed: u8 = ALL_STOP;
         let mut bl_motor_speed: u8 = ALL_STOP;
         let mut br_motor_speed: u8 = ALL_STOP;
-
-        if strafe_left_button_value != IMPOSSIBLE_VALUE {
+        if lane_seek_button_value != IMPOSSIBLE_VALUE {
+            fr_motor_speed = UNDEAD_SLOW_AHEAD;
+            fl_motor_speed = DEAD_SLOW_AHEAD;
+            bl_motor_speed = DEAD_SLOW_AHEAD;
+            br_motor_speed = UNDEAD_SLOW_AHEAD;
+        } else if strafe_left_button_value != IMPOSSIBLE_VALUE {
             fr_motor_speed = STRAFE_FORWARD_SPEED;
             fl_motor_speed = STRAFE_BACKWARD_SPEED;
             bl_motor_speed = STRAFE_FORWARD_SPEED;
@@ -496,15 +515,16 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         sleep(interval).await;
 
         if continue_button_value == 1 {
-            clear_screen_and_return_to_zero();
             println!("Stopping threads.");
             let mut mutex_guard = events_mutex.lock().await;
             mutex_guard.should_continue = false;
+            let quit_after_controller = mutex_guard.quit_after_controller;
             drop(mutex_guard);
             join_handle.await.unwrap();
             other_join_handle.await.unwrap();
+            clear_screen_and_return_to_zero();
             println!("Threads stopped, returning.");
-            return;
+            return quit_after_controller; 
         }
     }
 }
@@ -533,6 +553,15 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
                             0 => {
                                 mutex_guard.strafe_left_button_value = IMPOSSIBLE_VALUE;
                                 mutex_guard.strafe_right_button_value = IMPOSSIBLE_VALUE;
+                            },
+                        _ => {}
+                        }
+                    }
+                    AbsoluteAxisCode::ABS_HAT0Y => {
+                        match value {
+                            1 => mutex_guard.lane_seek_button_value = 1,
+                            0 => {
+                                mutex_guard.lane_seek_button_value = IMPOSSIBLE_VALUE;
                             },
                         _ => {}
                         }
