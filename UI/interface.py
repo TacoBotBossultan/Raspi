@@ -1,9 +1,37 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-import clients.client1 as sr 
+#import clients.client1 as sr 
 import socket
 import time
+import json
+HOST = '127.0.0.1'  
+PORT = 8080        
+
+def send_request(sock, request_data):
+    try:
+        message = json.dumps(request_data).encode('utf-8')
+        print(message)
+        
+        print(f"\n[CLIENT] Trimitem: {request_data}")
+        sock.sendall(message)
+
+        response_bytes = sock.recv(1024)
+        if not response_bytes:
+            print("[CLIENT] Serverul a inchid conexiunea.")
+            return None
+            
+        response_data = json.loads(response_bytes.decode('utf-8'))
+        print(f"[SERVER] Raspsuns cu : {response_data}")
+        return response_data
+
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] N-am putut decoda respunsul de json: {e}")
+        #print(f"Raspunsu : {response_bytes.decode('utf-8')}")
+        return None
+    except Exception as e:
+        print(f"[ERROR] EROAREE!: {e}")
+        return None
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -57,8 +85,8 @@ class App(tk.Tk):
     def connect_to_server(self):
         try:
             with s:
-                print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
-                s.connect((sr.HOST,sr.PORT))
+                print(f"Ne conectam la {HOST}:{PORT}...")
+                s.connect((HOST,PORT))
                 print("CONNECTION SUCCESSFUL!!")
             return s
 
@@ -108,7 +136,7 @@ class DefineHomePage(tk.Frame):
             theta_text = int(self.theta_entry.get())
             coordinates_dict = { "home_x": x_text, "home_y": y_text, "home_theta": theta_text}
             define_home_request = {"DefineHome" : coordinates_dict}
-            sr.send_request(s, define_home_request)
+            send_request(s, define_home_request)
             time.sleep(1)
 
             self.result_label.config(text="✅ You defined the home")
@@ -243,7 +271,7 @@ class StoreRoutePage(tk.Frame):
             route_dict = {"starting_position_name" : starting_position_text, "route" : route_list, "destination_position_name" : destination_position_text}
             store_route_request = {"StoreRoute" : route_dict}
  
-            sr.send_request(s, store_route_request)
+            send_request(s, store_route_request)
             time.sleep(1)
 
         except Exception as e:
@@ -281,7 +309,7 @@ class GoAndTakePhotoPage(tk.Frame):
             route_dict = {"start_name" : start_text, "destination_name" : dest_text}
             mission_request_dict = {"action" : "TakePhoto", "route" : route_dict}
             mission_request = {"MissionRequest" : mission_request_dict}
-            sr.send_request(s, mission_request)
+            send_request(s, mission_request)
             time.sleep(1)
 
         except Exception as e:
@@ -304,7 +332,7 @@ class TakePhotoPage(tk.Frame):
     def on_take_photo(self):
         try:
             photo_request = {"Photo": None}
-            sr.send_request(s, photo_request)
+            send_request(s, photo_request)
             time.sleep(1)
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")
@@ -343,7 +371,7 @@ class GoToPositionPage(tk.Frame):
             coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
             go_to_position_dict = {"action" : "GoToPosition", "position" : coordinates_dict}
             go_to_position_request = {"MissionRequest" : go_to_position_dict}
-            sr.send_request(s, go_to_position_request)
+            send_request(s, go_to_position_request)
             time.sleep(1)
 
         except ValueError:
@@ -404,7 +432,7 @@ class InsertRackPage(tk.Frame):
             coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
             insert_rack_dict = {"action" : "InsertRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
             insert_rack_request = {"MissionRequest" : insert_rack_dict}
-            sr.send_request(s, insert_rack_request)
+            send_request(s, insert_rack_request)
             time.sleep(1)
 
         except ValueError:
@@ -466,7 +494,7 @@ class RemoveRackPage(tk.Frame):
             coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
             remove_rack_dict = {"action" : "RemoveRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
             remove_rack_request = {"MissionRequest" : remove_rack_dict}
-            sr.send_request(s, remove_rack_request)
+            send_request(s, remove_rack_request)
             time.sleep(1)
 
         except ValueError:
