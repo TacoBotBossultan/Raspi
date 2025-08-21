@@ -8,6 +8,8 @@ use crate::chassis::{
     real_chassis::RealChassis,
 };
 
+static LANE_SEEK_STRING: Option<&'static str> = Some("LANE_SEEK");
+
 #[derive(Debug)]
 pub struct Stopped;
 #[derive(Debug)]
@@ -139,9 +141,14 @@ impl Direction {
         }
     }
 
-    async fn motors_setting(&self, is_slow: bool, chassis: &Arc<sync::Mutex<RealChassis>>) {
+    async fn motors_setting(
+        &self,
+        is_slow: bool,
+        is_leaning_into_instrument: bool,
+        chassis: &Arc<sync::Mutex<RealChassis>>,
+    ) {
         match self {
-            Direction::Forward if !is_slow => {
+            Direction::Forward if !is_slow && !is_leaning_into_instrument => {
                 chassis.lock().await.set_motor_speeds(
                     EngineOrder::FullAhead,
                     EngineOrder::FullAhead,
@@ -149,12 +156,20 @@ impl Direction {
                     EngineOrder::FullAhead,
                 );
             }
+            Direction::Forward if is_leaning_into_instrument => {
+                chassis.lock().await.set_motor_speeds(
+                    EngineOrder::UnDeadSlowAhead,
+                    EngineOrder::DeadSlowAhead,
+                    EngineOrder::DeadSlowAhead,
+                    EngineOrder::UnDeadSlowAhead,
+                );
+            }
             Direction::Forward => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAhead,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAhead,
                 );
             }
             Direction::Backward if !is_slow => {
@@ -167,42 +182,42 @@ impl Direction {
             }
             Direction::Backward => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAstern,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAstern,
                 );
             }
             Direction::Left => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAhead,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAhead,
                 );
             }
             Direction::Right => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAstern,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAstern,
                 );
             }
             Direction::RotateRight => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAstern,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAstern,
                 );
             }
             Direction::RotateLeft => {
                 chassis.lock().await.set_motor_speeds(
-                    EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAstern,
-                    EngineOrder::DeadSlowAhead,
+                    EngineOrder::SlowAhead,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAstern,
+                    EngineOrder::SlowAhead,
                 );
             }
             Direction::NoMovement => {
@@ -510,7 +525,7 @@ impl RunnableNavState for Accelerating {
             ));
         }
         self.movement_forward_backward
-            .motors_setting(false, &chassis)
+            .motors_setting(false, false, &chassis)
             .await;
 
         let mut difference_target_current: u32 = target_position
@@ -608,7 +623,11 @@ impl RunnableNavState for SlowRide {
             ));
         }
         self.movement_forward_backward
-            .motors_setting(true, &chassis)
+            .motors_setting(
+                true,
+                target_position.position_name.as_deref() == LANE_SEEK_STRING,
+                &chassis,
+            )
             .await;
 
         let mut difference_current_initial: u32 = self
@@ -669,7 +688,7 @@ impl RunnableNavState for Strafing {
         }
 
         self.movement_right_left
-            .motors_setting(true, &chassis)
+            .motors_setting(true, false, &chassis)
             .await;
 
         let mut difference_current_initial: u32 = self
@@ -718,7 +737,9 @@ impl RunnableNavState for Rotating {
             return NavComputerStates::Stopped(Stopped::new());
         }
 
-        self.movement_on_theta.motors_setting(false, &chassis).await;
+        self.movement_on_theta
+            .motors_setting(false, false, &chassis)
+            .await;
 
         NavComputerStates::Rotating(Rotating::new(self.movement_on_theta))
     }

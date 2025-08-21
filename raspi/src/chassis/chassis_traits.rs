@@ -38,11 +38,12 @@ pub enum MotorIndex {
 #[derive(Debug, PartialEq, Eq, Hash, Clone, FromPrimitive, Serialize, Deserialize)]
 pub enum EngineOrder {
     FullAhead = 200,
-    HalfAhead = 150,
-    DeadSlowAhead = 125,
+    SlowAhead = 125,
+    UnDeadSlowAhead = 104,
+    DeadSlowAhead = 102,
     Stop = 100,
-    DeadSlowAstern = 75,
-    HalfAstern = 50,
+    DeadSlowAstern = 98,
+    SlowAstern = 75,
     FullAstern = 1,
 }
 

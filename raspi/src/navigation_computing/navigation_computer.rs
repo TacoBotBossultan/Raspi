@@ -21,6 +21,7 @@ use super::nav_computer_states::{Direction, Stopped};
 
 pub const LOOP_TIME: u64 = 40;
 static PRE_APPEND_STR: &str = "[Navigation-Computer]";
+static LANE_SEEK_STRING: Option<&'static str> = Some("LANE_SEEK");
 
 #[derive(Debug)]
 pub struct NavigationComputer {
@@ -183,7 +184,8 @@ impl NavigationComputer {
             }
             _ => {}
         }
-        let new_position = Position::create(None, new_x, new_y, curr_position.get_theta()).unwrap();
+        let new_position =
+            Position::create(LANE_SEEK_STRING.map(String::from), new_x, new_y, curr_position.get_theta()).unwrap();
         *self.target_position.lock().await = new_position.clone();
     }
 
