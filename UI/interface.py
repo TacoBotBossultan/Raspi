@@ -10,12 +10,11 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.withdraw()
-        # self.conn = self.connect_to_server()
-        # if not self.conn:
-        #     self.destroy()
-        #     return
-        #
+        self.conn = self.connect_to_server()
+        if not self.conn:
+            self.destroy()
+            return
+
         self.title("TacoBot user interface")
         self.geometry("1000x700")
 
