@@ -524,6 +524,9 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             other_join_handle.await.unwrap();
             clear_screen_and_return_to_zero();
             println!("Threads stopped, returning.");
+            if quit_after_controller{
+                execute!(stdout(), Show).unwrap();
+            }
             return quit_after_controller; 
         }
     }
@@ -559,7 +562,7 @@ async fn parse_events(controller_events: Arc<Mutex<ControllerEvents>>, mut contr
                     }
                     AbsoluteAxisCode::ABS_HAT0Y => {
                         match value {
-                            1 => mutex_guard.lane_seek_button_value = 1,
+                            -1 => mutex_guard.lane_seek_button_value = 1,
                             0 => {
                                 mutex_guard.lane_seek_button_value = IMPOSSIBLE_VALUE;
                             },
