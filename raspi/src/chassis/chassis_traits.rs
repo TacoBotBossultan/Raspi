@@ -39,7 +39,7 @@ pub enum MotorIndex {
 pub enum EngineOrder {
     FullAhead = 200,
     SlowAhead = 125,
-    UnDeadSlowAhead = 104,
+    UnDeadSlowAhead = 103,
     DeadSlowAhead = 102,
     Stop = 100,
     DeadSlowAstern = 98,
