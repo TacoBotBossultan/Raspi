@@ -1,7 +1,9 @@
 use core::result::Result;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::PyAnyMethods;
+use pyo3::types::PyBytesMethods;
+use pyo3::types::{PyBytes, PyDict};
 
 #[derive(Debug, Clone, Copy)]
 pub struct LeRelevement {
@@ -31,47 +33,45 @@ impl ElectricEye {
         ElectricEye
     }
 
-    pub fn take_photo() {
-        //     Python::with_gil(|py| {
-        //         let locals = PyDict::new(py);
-        //         if let Err(error) = py.run(
-        //             c_str!(
-        //                 r#"
-        // from picamera2 import Picamera2
-        // import time
-        // from libcamera import Transform
-        //
-        // real_height = 16.5
-        // focal_length = 788.78
-        // picam2 = Picamera2()
-        // config = picam2.create_still_configuration(
-        //     transform=Transform(rotation=180), main={"size": (1000, 1000)}   # or Transform(hflip=1, vflip=1)
-        // )
-        // picam2.configure(config)
-        //
-        // picam2.start()
-        // time.sleep(2)
-        //
-        // image = picam2.capture_array()
-        // picam2.capture_file("/home/pi/Pictures/photo.jpg")
-        // "#
-        //             ),
-        //             None,
-        //             Some(&locals),
-        //         ) {
-        //             error.display(py);
-        //             return Err(error.to_string());
-        //         }
-        //
-        //         let image = match locals.get_item("image").unwrap().unwrap().extract::<f32>() {
-        //             Ok(photo) => photo,
-        //             Err(_) => return Err("Invalid image".to_string()),
-        //         };
-        //
-        //     })
+    pub fn take_photo() -> PyResult<Vec<u8>> {
+        Python::with_gil(|py| {
+            let locals = PyDict::new(py);
+
+            py.run(
+                c_str!(
+                    r#"
+from picamera2 import Picamera2
+import time
+from libcamera import Transform
+import cv2
+import numpy as np
+
+picam2 = Picamera2()
+config = picam2.create_still_configuration(
+    transform=Transform(rotation=180), main={"size": (1000, 1000)}
+)
+picam2.configure(config)
+picam2.start()
+time.sleep(2)
+
+image = picam2.capture_array()
+_, buffer = cv2.imencode('.jpg', image)
+jpg_bytes = buffer.tobytes()
+"#
+                ),
+                None,
+                Some(&locals),
+            )?;
+
+            let any = locals
+                .get_item("jpg_bytes")?
+                .ok_or_else(|| pyo3::exceptions::PyKeyError::new_err("jpg_bytes not found"))?;
+
+            let pybytes: pyo3::Bound<'_, PyBytes> = any.extract::<pyo3::Bound<'_, PyBytes>>()?;
+            Ok(pybytes.as_bytes().to_vec())
+        })
     }
 
-    // Atentie, image e un vector aici, python are nevoie de un path.
     pub fn find_marker() -> Result<LeRelevement, String> {
         Python::with_gil(|py| {
             let locals = PyDict::new(py);
