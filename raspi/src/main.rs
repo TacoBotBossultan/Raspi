@@ -410,8 +410,8 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         if lane_seek_button_value != IMPOSSIBLE_VALUE {
             fr_motor_speed = UNDEAD_SLOW_AHEAD;
             fl_motor_speed = DEAD_SLOW_AHEAD;
-            bl_motor_speed = DEAD_SLOW_AHEAD;
-            br_motor_speed = UNDEAD_SLOW_AHEAD;
+            bl_motor_speed = UNDEAD_SLOW_AHEAD;
+            br_motor_speed = DEAD_SLOW_AHEAD;
         } else if strafe_left_button_value != IMPOSSIBLE_VALUE {
             fr_motor_speed = STRAFE_FORWARD_SPEED;
             fl_motor_speed = STRAFE_BACKWARD_SPEED;

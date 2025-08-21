@@ -160,8 +160,8 @@ impl Direction {
                 chassis.lock().await.set_motor_speeds(
                     EngineOrder::UnDeadSlowAhead,
                     EngineOrder::DeadSlowAhead,
-                    EngineOrder::DeadSlowAhead,
                     EngineOrder::UnDeadSlowAhead,
+                    EngineOrder::DeadSlowAhead,
                 );
             }
             Direction::Forward => {
