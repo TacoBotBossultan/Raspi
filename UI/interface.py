@@ -512,11 +512,3 @@ class RemoveRackPage(tk.Frame):
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
-
-
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
-
