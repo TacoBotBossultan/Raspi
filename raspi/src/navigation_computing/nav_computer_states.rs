@@ -384,15 +384,15 @@ impl RunnableNavState for Stopped {
     ) -> NavComputerStates {
         stop_motors(&chassis).await;
         let difference_x: i32 =
-            target_position.get_x_coordinate() as i32 - current_position.get_x_coordinate() as i32;
+            target_position.get_x_coordinate() - current_position.get_x_coordinate();
         let difference_y: i32 =
-            target_position.get_y_coordinate() as i32 - current_position.get_y_coordinate() as i32;
+            target_position.get_y_coordinate() - current_position.get_y_coordinate();
         let difference_theta =
             target_position.get_theta() as i32 - current_position.get_theta() as i32;
         let decelerating_position_x: i32 =
-            8 * (difference_x) / 10 + current_position.get_x_coordinate() as i32;
+            8 * (difference_x) / 10 + current_position.get_x_coordinate();
         let decelerating_position_y: i32 =
-            8 * (difference_y) / 10 + current_position.get_y_coordinate() as i32;
+            8 * (difference_y) / 10 + current_position.get_y_coordinate();
 
         let decelerating_position = Position::create(
             None,
