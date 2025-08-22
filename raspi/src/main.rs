@@ -94,7 +94,7 @@ async fn main() {
     let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
     let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
     let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
-    let nav_computer = NavigationComputer::new();
+    let nav_computer = Arc::new(NavigationComputer::new());
     let mission_controller = MissionController::new(async_logger.clone());
     let (master_controller_command_sender, command_receiver) = mpsc::channel(32);
     let map_storage = MapStorage::new();
@@ -118,7 +118,7 @@ async fn main() {
         .clone()
         .run(
             mission_controller,
-            nav_computer,
+            Arc::clone(&nav_computer),
             chassis_arc,
             command_receiver,
             map_storage,
