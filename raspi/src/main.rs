@@ -106,10 +106,7 @@ async fn main() {
         .out_print(format!("{PRE_APPEND_STR} server asculta pe 127.0.0.1:8080"))
         .await;
 
-    let (mut stream, addr) = match listener.accept().await  {  
-        Ok((socket, addr)) => (socket, addr),
-        Err(e) => println!("couldn't get client: {:?}", e),
-    };
+    let (mut stream, addr) = listener.accept().await.unwrap(); 
 
     async_logger
         .out_print(format!("{PRE_APPEND_STR} Avem o conexiune de la: {addr}"))
