@@ -32,17 +32,17 @@ def send_photo_request_and_save_photo(sock):
         cnt +=1 
         print("suntem la loopu din recv:", cnt)
         print('Chunku e:', chunk)
-        if '}}' in chunk:
+        image_data += chunk
+        if b'}}' in chunk:
             print('gataaa s-ar terminat nu mai am primit nimic, dupa:', cnt)
             break
-        image_data += chunk
 
 
     response_data = json.loads(image_data.decode("utf-8"))
-    print('Response Data cu poza:' ,response_data)
+    # print('Response Data cu poza:' ,response_data)
     # save the received data to a file
     with open("received_image.jpg", "wb") as f:
-        f.write(response_data['PhotoResponse']['photo_data'])
+        f.write(bytes( response_data['PhotoResponse']['photo_data'] ))
     print("Image received and saved successfully.")
         
 def send_general_request(sock, request_data, receive_size) -> dict | None:
