@@ -139,12 +139,12 @@ impl MasterController {
             Requests::Photo(_) => {
                 // un vector random cu "datele de poza"
                 //TODO: fa de aici direct poza
+                async_logger.out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza, da sa ma prefac ca virgula chiar am o camera, ii trimit poza asta")).await;
                 let photo = ElectricEye::take_photo();
                 let photo_response = responses::PhotoResponse {
                     photo_data: photo.unwrap(), // Example photo data
                 };
 
-                async_logger.out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza, da sa ma prefac ca virgula chiar am o camera, ii trimit poza asta")).await;
                 Responses::PhotoResponse(photo_response)
             }
 

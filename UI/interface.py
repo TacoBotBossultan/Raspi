@@ -9,7 +9,7 @@ HOST = "127.0.0.1"
 PORT = 8080
 
 
-def send_request(sock, request_data, receive_size):
+def send_request(sock, request_data, receive_size) -> dict | None:
     try:
         message = json.dumps(request_data).encode("utf-8")
         print(message)
@@ -23,7 +23,7 @@ def send_request(sock, request_data, receive_size):
             return None
 
         response_data = json.loads(response_bytes.decode("utf-8"))
-        print(f"[SERVER] Raspsuns cu : {response_data}")
+        # print(f"[SERVER] Raspsuns cu : {response_data}")
         return response_data
 
     except json.JSONDecodeError as e:
