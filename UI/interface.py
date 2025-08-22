@@ -1,18 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-#import clients.client1 as sr 
 import socket
 import time
 import json
-HOST = '127.0.0.1'  
-PORT = 8080        
+
+HOST = "127.0.0.1"
+PORT = 8080
+
 
 def send_request(sock, request_data):
     try:
-        message = json.dumps(request_data).encode('utf-8')
+        message = json.dumps(request_data).encode("utf-8")
         print(message)
-        
+
         print(f"\n[CLIENT] Trimitem: {request_data}")
         sock.sendall(message)
 
@@ -20,20 +21,22 @@ def send_request(sock, request_data):
         if not response_bytes:
             print("[CLIENT] Serverul a inchid conexiunea.")
             return None
-            
-        response_data = json.loads(response_bytes.decode('utf-8'))
+
+        response_data = json.loads(response_bytes.decode("utf-8"))
         print(f"[SERVER] Raspsuns cu : {response_data}")
         return response_data
 
     except json.JSONDecodeError as e:
         print(f"[ERROR] N-am putut decoda respunsul de json: {e}")
-        #print(f"Raspunsu : {response_bytes.decode('utf-8')}")
+        # print(f"Raspunsu : {response_bytes.decode('utf-8')}")
         return None
     except Exception as e:
         print(f"[ERROR] EROAREE!: {e}")
         return None
 
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -51,7 +54,15 @@ class App(tk.Tk):
 
         self.pages = {}
 
-        for P in (DefineHomePage, StoreRoutePage, GoAndTakePhotoPage, TakePhotoPage, GoToPositionPage, InsertRackPage, RemoveRackPage):
+        for P in (
+            DefineHomePage,
+            StoreRoutePage,
+            GoAndTakePhotoPage,
+            TakePhotoPage,
+            GoToPositionPage,
+            InsertRackPage,
+            RemoveRackPage,
+        ):
             page_name = P.__name__
             frame = P(parent=self.container, controller=self)
             self.pages[page_name] = frame
@@ -60,13 +71,41 @@ class App(tk.Tk):
         nav_frame = tk.Frame(self)
         nav_frame.pack(side="top", fill="x")
 
-        define_home_button = tk.Button(nav_frame, text="Define home", command=lambda: self.show_page("DefineHomePage"))
-        store_route_button = tk.Button(nav_frame, text="Store route", command=lambda: self.show_page("StoreRoutePage"))
-        take_photo_button = tk.Button(nav_frame, text="Take photo", command=lambda: self.show_page("TakePhotoPage"))
-        go_and_take_photo_button = tk.Button(nav_frame, text="Go and take photo", command=lambda: self.show_page("GoAndTakePhotoPage"))
-        go_to_position_button = tk.Button(nav_frame, text="Go to position", command=lambda: self.show_page("GoToPositionPage"))
-        insert_rack_button = tk.Button(nav_frame, text="Insert Rack", command=lambda: self.show_page("InsertRackPage"))
-        remove_rack_button = tk.Button(nav_frame, text="Remove Rack", command=lambda: self.show_page("RemoveRackPage"))
+        define_home_button = tk.Button(
+            nav_frame,
+            text="Define home",
+            command=lambda: self.show_page("DefineHomePage"),
+        )
+        store_route_button = tk.Button(
+            nav_frame,
+            text="Store route",
+            command=lambda: self.show_page("StoreRoutePage"),
+        )
+        take_photo_button = tk.Button(
+            nav_frame,
+            text="Take photo",
+            command=lambda: self.show_page("TakePhotoPage"),
+        )
+        go_and_take_photo_button = tk.Button(
+            nav_frame,
+            text="Go and take photo",
+            command=lambda: self.show_page("GoAndTakePhotoPage"),
+        )
+        go_to_position_button = tk.Button(
+            nav_frame,
+            text="Go to position",
+            command=lambda: self.show_page("GoToPositionPage"),
+        )
+        insert_rack_button = tk.Button(
+            nav_frame,
+            text="Insert Rack",
+            command=lambda: self.show_page("InsertRackPage"),
+        )
+        remove_rack_button = tk.Button(
+            nav_frame,
+            text="Remove Rack",
+            command=lambda: self.show_page("RemoveRackPage"),
+        )
 
         define_home_button.pack(side="left", expand=True, fill="x")
         store_route_button.pack(side="left", expand=True, fill="x")
@@ -76,7 +115,7 @@ class App(tk.Tk):
         insert_rack_button.pack(side="left", expand=True, fill="x")
         remove_rack_button.pack(side="left", expand=True, fill="x")
 
-        self.show_page("DefineHomePage")  
+        self.show_page("DefineHomePage")
 
     def show_page(self, page_name):
         page = self.pages[page_name]
@@ -84,8 +123,8 @@ class App(tk.Tk):
 
     def connect_to_server(self):
         try:
-            print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
-            s.connect((sr.HOST,sr.PORT))
+            print(f"Ne conectam la {HOST}:{PORT}...")
+            s.connect((HOST, PORT))
             print("CONNECTION SUCCESSFUL!!")
             return s
 
@@ -94,10 +133,8 @@ class App(tk.Tk):
             return None
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-           return None
-
-
+            messagebox.showerror("Error", f"Error: {e}")
+            return None
 
 
 class DefineHomePage(tk.Frame):
@@ -117,7 +154,7 @@ class DefineHomePage(tk.Frame):
         self.y_label.pack(padx=10, pady=(10, 0))
         self.y_entry.pack(padx=10, pady=5)
         self.theta_label.pack(padx=10, pady=(10, 0))
-        self.theta_entry.pack(padx= 10, pady=5)
+        self.theta_entry.pack(padx=10, pady=5)
 
         self.result_label = tk.Label(self, text="", font=("Arial", 12))
         self.result_label.pack(pady=10)
@@ -133,8 +170,12 @@ class DefineHomePage(tk.Frame):
             x_text = int(self.x_entry.get())
             y_text = int(self.y_entry.get())
             theta_text = int(self.theta_entry.get())
-            coordinates_dict = { "home_x": x_text, "home_y": y_text, "home_theta": theta_text}
-            define_home_request = {"DefineHome" : coordinates_dict}
+            coordinates_dict = {
+                "home_x": x_text,
+                "home_y": y_text,
+                "home_theta": theta_text,
+            }
+            define_home_request = {"DefineHome": coordinates_dict}
             send_request(s, define_home_request)
             time.sleep(1)
 
@@ -144,13 +185,11 @@ class DefineHomePage(tk.Frame):
             messagebox.showerror("Error", "The coordinates should be integers!")
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
 
     def on_cancel(self):
         self.x_entry.delete(0, tk.END)
@@ -159,19 +198,26 @@ class DefineHomePage(tk.Frame):
 
         self.result_label.config(text="")
 
+
 class StoreRoutePage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        tk.Label(self, text="Starting position:").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        tk.Label(self, text="Starting position:").grid(
+            row=0, column=0, padx=10, pady=5, sticky="e"
+        )
         self.starting_position_field = tk.Entry(self, width=30)
         self.starting_position_field.grid(row=0, column=1, padx=10, pady=5)
 
-        tk.Label(self, text="Destination position:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        tk.Label(self, text="Destination position:").grid(
+            row=1, column=0, padx=10, pady=5, sticky="e"
+        )
         self.destination_position_field = tk.Entry(self, width=30)
         self.destination_position_field.grid(row=1, column=1, padx=10, pady=5)
 
-        self.define_route_btn = tk.Button(self, text="Define route", command=self.show_more_fields)
+        self.define_route_btn = tk.Button(
+            self, text="Define route", command=self.show_more_fields
+        )
         self.define_route_btn.grid(row=2, column=0, columnspan=2, pady=10)
 
         self.direction_label = None
@@ -186,14 +232,21 @@ class StoreRoutePage(tk.Frame):
         self.summary_label = tk.Label(self, text="", justify="left", font=("Arial", 12))
 
     def show_more_fields(self):
-        if not self.direction_label:  
+        if not self.direction_label:
             self.direction_label = tk.Label(self, text="Direction:")
             self.direction_label.grid(row=3, column=0, padx=10, pady=5, sticky="e")
 
-            self.direction_entry = ttk.Combobox(self, values=[
-                "Forward", "Backward", "Right",
-                "Left", "Rotate Right", "Rotate Left"
-            ])
+            self.direction_entry = ttk.Combobox(
+                self,
+                values=[
+                    "Forward",
+                    "Backward",
+                    "Right",
+                    "Left",
+                    "Rotate Right",
+                    "Rotate Left",
+                ],
+            )
             self.direction_entry.set("Choose a direction...")
             self.direction_entry.grid(row=3, column=1, padx=10, pady=5)
 
@@ -214,25 +267,25 @@ class StoreRoutePage(tk.Frame):
             text = self.value_entry.get()
             if option or text:
                 self.submitted_texts.append((option, text))
-            self.value_entry.delete(0, tk.END)  
+            self.value_entry.delete(0, tk.END)
 
     def on_stop(self):
-        if self.direction_label: 
+        if self.direction_label:
             self.direction_label.destroy()
             self.direction_label = None
-        if self.direction_entry: 
+        if self.direction_entry:
             self.direction_entry.destroy()
             self.direction_entry = None
-        if self.value_label: 
+        if self.value_label:
             self.value_label.destroy()
             self.value_label = None
-        if self.value_entry: 
+        if self.value_entry:
             self.value_entry.destroy()
             self.value_entry = None
-        if self.submit_btn: 
+        if self.submit_btn:
             self.submit_btn.destroy()
             self.submit_btn = None
-        if self.stop_btn: 
+        if self.stop_btn:
             self.stop_btn.destroy()
             self.stop_btn = None
 
@@ -258,24 +311,27 @@ class StoreRoutePage(tk.Frame):
         self.summary_label.grid_forget()
         self.cancel_btn.grid_forget()
         self.save_btn.grid_forget()
-    
+
     def on_save(self):
         try:
             starting_position_text = self.starting_position_field.get()
             destination_position_text = self.destination_position_field.get()
             route_list = []
             for i, (opt, txt) in enumerate(self.submitted_texts, start=1):
-                current_dict = {"direction_type" :  opt  ,  "value" : txt}
+                current_dict = {"direction_type": opt, "value": txt}
                 route_list.append(current_dict)
-            route_dict = {"starting_position_name" : starting_position_text, "route" : route_list, "destination_position_name" : destination_position_text}
-            store_route_request = {"StoreRoute" : route_dict}
- 
+            route_dict = {
+                "starting_position_name": starting_position_text,
+                "route": route_list,
+                "destination_position_name": destination_position_text,
+            }
+            store_route_request = {"StoreRoute": route_dict}
+
             send_request(s, store_route_request)
             time.sleep(1)
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.on_cancel()
 
@@ -284,15 +340,21 @@ class GoAndTakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        tk.Label(self, text="Starting position:").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        tk.Label(self, text="Starting position:").grid(
+            row=0, column=0, padx=10, pady=5, sticky="e"
+        )
         self.starting_entry = tk.Entry(self, width=30)
         self.starting_entry.grid(row=0, column=1, padx=10, pady=5)
 
-        tk.Label(self, text="Destination position:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        tk.Label(self, text="Destination position:").grid(
+            row=1, column=0, padx=10, pady=5, sticky="e"
+        )
         self.destination_entry = tk.Entry(self, width=30)
         self.destination_entry.grid(row=1, column=1, padx=10, pady=5)
 
-        self.go_and_photo_btn = tk.Button(self, text="Go and take a photo", command=self.on_submit)
+        self.go_and_photo_btn = tk.Button(
+            self, text="Go and take a photo", command=self.on_submit
+        )
         self.go_and_photo_btn.grid(row=2, column=0, padx=10, pady=10)
 
         self.cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
@@ -305,14 +367,14 @@ class GoAndTakePhotoPage(tk.Frame):
         try:
             start_text = self.starting_entry.get()
             dest_text = self.destination_entry.get()
-            route_dict = {"start_name" : start_text, "destination_name" : dest_text}
-            mission_request_dict = {"action" : "TakePhoto", "route" : route_dict}
-            mission_request = {"MissionRequest" : mission_request_dict}
+            route_dict = {"start_name": start_text, "destination_name": dest_text}
+            mission_request_dict = {"action": "TakePhoto", "route": route_dict}
+            mission_request = {"MissionRequest": mission_request_dict}
             send_request(s, mission_request)
             time.sleep(1)
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.starting_entry.delete(0, tk.END)
         self.destination_entry.delete(0, tk.END)
@@ -325,16 +387,18 @@ class GoAndTakePhotoPage(tk.Frame):
 class TakePhotoPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        self.photo_btn = tk.Button(self, text="Take a photo", command=self.on_take_photo)
+        self.photo_btn = tk.Button(
+            self, text="Take a photo", command=self.on_take_photo
+        )
         self.photo_btn.grid(row=2, column=0, padx=10, pady=10)
 
     def on_take_photo(self):
         try:
-            photo_request = {"Photo": 1 }
-            sr.send_request(s, photo_request)
+            photo_request = {"Photo": None}
+            send_request(s, photo_request)
             time.sleep(1)
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
+            messagebox.showerror("Error", f"Error: {e}")
 
 
 class GoToPositionPage(tk.Frame):
@@ -354,9 +418,11 @@ class GoToPositionPage(tk.Frame):
         self.y_label.pack(padx=10, pady=(10, 0))
         self.y_entry.pack(padx=10, pady=5)
         self.theta_label.pack(padx=10, pady=(10, 0))
-        self.theta_entry.pack(padx= 10, pady=5)
+        self.theta_entry.pack(padx=10, pady=5)
 
-        go_to_position_btn = tk.Button(self, text="  Go  ", command=self.on_go_to_position)
+        go_to_position_btn = tk.Button(
+            self, text="  Go  ", command=self.on_go_to_position
+        )
         cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
 
         go_to_position_btn.pack(side="left", padx=20, pady=10)
@@ -367,9 +433,16 @@ class GoToPositionPage(tk.Frame):
             x_text = int(self.x_entry.get())
             y_text = int(self.y_entry.get())
             theta_text = int(self.theta_entry.get())
-            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
-            go_to_position_dict = {"action" : "GoToPosition", "position" : coordinates_dict}
-            go_to_position_request = {"MissionRequest" : go_to_position_dict}
+            coordinates_dict = {
+                "x_coordinate": x_text,
+                "y_coordinate": y_text,
+                "theta": theta_text,
+            }
+            go_to_position_dict = {
+                "action": "GoToPosition",
+                "position": coordinates_dict,
+            }
+            go_to_position_request = {"MissionRequest": go_to_position_dict}
             send_request(s, go_to_position_request)
             time.sleep(1)
 
@@ -377,13 +450,11 @@ class GoToPositionPage(tk.Frame):
             messagebox.showerror("Error", "The coordinates should be integers!")
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
 
     def on_cancel(self):
         self.x_entry.delete(0, tk.END)
@@ -410,12 +481,13 @@ class InsertRackPage(tk.Frame):
         self.y_label.pack(padx=10, pady=(10, 0))
         self.y_entry.pack(padx=10, pady=5)
         self.theta_label.pack(padx=10, pady=(10, 0))
-        self.theta_entry.pack(padx= 10, pady=5)
+        self.theta_entry.pack(padx=10, pady=5)
         self.lane_number_label.pack(padx=10, pady=(10, 0))
-        self.lane_number_entry.pack(padx= 10, pady=5)
+        self.lane_number_entry.pack(padx=10, pady=5)
 
-
-        insert_rack_btn = tk.Button(self, text="Insert Rack", command=self.on_insert_rack)
+        insert_rack_btn = tk.Button(
+            self, text="Insert Rack", command=self.on_insert_rack
+        )
         cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
 
         insert_rack_btn.pack(side="left", padx=20, pady=10)
@@ -428,9 +500,17 @@ class InsertRackPage(tk.Frame):
             theta_text = int(self.theta_entry.get())
             lane_number_text = int(self.lane_number_entry.get())
 
-            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
-            insert_rack_dict = {"action" : "InsertRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
-            insert_rack_request = {"MissionRequest" : insert_rack_dict}
+            coordinates_dict = {
+                "x_coordinate": x_text,
+                "y_coordinate": y_text,
+                "theta": theta_text,
+            }
+            insert_rack_dict = {
+                "action": "InsertRack",
+                "position": coordinates_dict,
+                "lane_number": lane_number_text,
+            }
+            insert_rack_request = {"MissionRequest": insert_rack_dict}
             send_request(s, insert_rack_request)
             time.sleep(1)
 
@@ -438,19 +518,16 @@ class InsertRackPage(tk.Frame):
             messagebox.showerror("Error", "The coordinates should be integers!")
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
 
     def on_cancel(self):
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
 
 
 class RemoveRackPage(tk.Frame):
@@ -472,12 +549,13 @@ class RemoveRackPage(tk.Frame):
         self.y_label.pack(padx=10, pady=(10, 0))
         self.y_entry.pack(padx=10, pady=5)
         self.theta_label.pack(padx=10, pady=(10, 0))
-        self.theta_entry.pack(padx= 10, pady=5)
+        self.theta_entry.pack(padx=10, pady=5)
         self.lane_number_label.pack(padx=10, pady=(10, 0))
-        self.lane_number_entry.pack(padx= 10, pady=5)
+        self.lane_number_entry.pack(padx=10, pady=5)
 
-
-        remove_rack_btn = tk.Button(self, text="Remove Rack", command=self.on_remove_rack)
+        remove_rack_btn = tk.Button(
+            self, text="Remove Rack", command=self.on_remove_rack
+        )
         cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
 
         remove_rack_btn.pack(side="left", padx=20, pady=10)
@@ -490,9 +568,17 @@ class RemoveRackPage(tk.Frame):
             theta_text = int(self.theta_entry.get())
             lane_number_text = int(self.lane_number_entry.get())
 
-            coordinates_dict = { "x_coordinate": x_text, "y_coordinate": y_text, "theta": theta_text}
-            remove_rack_dict = {"action" : "RemoveRack", "position" : coordinates_dict, "lane_number" : lane_number_text}
-            remove_rack_request = {"MissionRequest" : remove_rack_dict}
+            coordinates_dict = {
+                "x_coordinate": x_text,
+                "y_coordinate": y_text,
+                "theta": theta_text,
+            }
+            remove_rack_dict = {
+                "action": "RemoveRack",
+                "position": coordinates_dict,
+                "lane_number": lane_number_text,
+            }
+            remove_rack_request = {"MissionRequest": remove_rack_dict}
             send_request(s, remove_rack_request)
             time.sleep(1)
 
@@ -500,13 +586,11 @@ class RemoveRackPage(tk.Frame):
             messagebox.showerror("Error", "The coordinates should be integers!")
 
         except Exception as e:
-           messagebox.showerror("Error", f"Error: {e}")
-
+            messagebox.showerror("Error", f"Error: {e}")
 
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
-
 
     def on_cancel(self):
         self.x_entry.delete(0, tk.END)
