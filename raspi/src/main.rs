@@ -226,12 +226,12 @@ async fn handle_connection(
                 let response_json = serde_json::to_string(&response)?;
 
                 // async_logger.out_print(format!("{response:#?}")).await;
-                async_logger
-                    .out_print(format!("{PRE_APPEND_STR} Sent response: "))
-                    .await;
                 // async_logger.out_print(format!("{response_json:#?}")).await;
 
                 stream.write_all(response_json.as_bytes()).await?;
+                async_logger
+                    .out_print(format!("{PRE_APPEND_STR} Sent response: "))
+                    .await;
             }
             Err(_) => {
                 async_logger
