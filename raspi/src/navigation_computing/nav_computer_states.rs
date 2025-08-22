@@ -684,6 +684,7 @@ impl RunnableNavState for Strafing {
         chassis: Arc<sync::Mutex<RealChassis>>,
     ) -> NavComputerStates {
         if Direction::NoMovement == self.movement_right_left {
+            stop_motors(&chassis).await;
             return NavComputerStates::Rotating(Rotating::new(self.movement_on_theta));
         }
 
