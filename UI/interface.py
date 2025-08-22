@@ -4,6 +4,7 @@ from tkinter import messagebox
 import socket
 import time
 import json
+import os
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -27,6 +28,7 @@ def send_photo_request_and_save_photo(sock):
     response_data = json.loads(image_data.decode("utf-8"))
     print('Response Data cu poza:' ,response_data)
     # save the received data to a file
+    os.remove("received_image.jpg")
     with open("received_image.jpg", "wb") as f:
         f.write(response_data['PhotoResponse']['photo_data'])
     print("Image received and saved successfully.")
