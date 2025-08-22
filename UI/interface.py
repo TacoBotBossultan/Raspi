@@ -26,9 +26,13 @@ def send_photo_request_and_save_photo(sock):
 
     # asteapta poza
     image_data = b""
+    cnt = 0 
     while True:
         chunk = sock.recv(4096)
+        cnt +=1 
+        print("suntem la loopu din recv:", cnt)
         if not chunk:
+            print('gataaa s-ar terminat nu mai am primit nimic, dupa:', cnt)
             break
         image_data += chunk
 
