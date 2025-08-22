@@ -9,7 +9,28 @@ HOST = "127.0.0.1"
 PORT = 8080
 
 
-def send_request(sock, request_data, receive_size) -> dict | None:
+def send_photo_request_and_save_photo(sock):
+    # dăi
+    req = {"Photo": None}
+    req_ser = json.dumps(req)
+    sock.sendall(req_ser.encode("utf-8"))
+
+    # asteapta poza
+    image_data = b""
+    while True:
+        chunk = sock.recv(4096)
+        if not chunk:
+            break
+        image_data += chunk
+
+
+    response_data = json.loads(image_data.decode("utf-8"))
+    # save the received data to a file
+    with open("received_image.jpg", "wb") as f:
+        f.write(response_data['PhotoResponse']['photo_data'])
+    print("Image received and saved successfully.")
+        
+def send_general_request(sock, request_data, receive_size) -> dict | None:
     try:
         message = json.dumps(request_data).encode("utf-8")
         print(message)
@@ -18,6 +39,8 @@ def send_request(sock, request_data, receive_size) -> dict | None:
         sock.sendall(message)
 
         response_bytes = sock.recv(receive_size)
+
+        print('Response bytes: ', response_bytes)
         if not response_bytes:
             print("[CLIENT] Serverul a inchid conexiunea.")
             return None
@@ -176,7 +199,7 @@ class DefineHomePage(tk.Frame):
                 "home_theta": theta_text,
             }
             define_home_request = {"DefineHome": coordinates_dict}
-            send_request(s, define_home_request, 1024)
+            send_general_request(s, define_home_request, 1024)
             time.sleep(1)
 
             self.result_label.config(text="✅ You defined the home")
@@ -327,7 +350,7 @@ class StoreRoutePage(tk.Frame):
             }
             store_route_request = {"StoreRoute": route_dict}
 
-            send_request(s, store_route_request, 1024)
+            send_general_request(s, store_route_request, 1024)
             time.sleep(1)
 
         except Exception as e:
@@ -370,7 +393,7 @@ class GoAndTakePhotoPage(tk.Frame):
             route_dict = {"start_name": start_text, "destination_name": dest_text}
             mission_request_dict = {"action": "TakePhoto", "route": route_dict}
             mission_request = {"MissionRequest": mission_request_dict}
-            send_request(s, mission_request, 1048576)
+            send_general_request(s, mission_request, 1048576)
             time.sleep(1)
 
         except Exception as e:
@@ -395,14 +418,7 @@ class TakePhotoPage(tk.Frame):
     def on_take_photo(self):
         try:
             photo_request = {"Photo": None}
-            image = send_request(s, photo_request, 1048576)
-            if image != None:
-                with open("received_image.jpg", "wb") as f:
-                    f.write(image['photo_data'])
-                print("Image received and saved successfully.")
-            else : 
-                print("Didn't receive image data!")
-            time.sleep(1)
+            send_photo_request_and_save_photo(s)
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
 
@@ -449,7 +465,7 @@ class GoToPositionPage(tk.Frame):
                 "position": coordinates_dict,
             }
             go_to_position_request = {"MissionRequest": go_to_position_dict}
-            send_request(s, go_to_position_request, 1024)
+            send_general_request(s, go_to_position_request, 1024)
             time.sleep(1)
 
         except ValueError:
@@ -517,7 +533,7 @@ class InsertRackPage(tk.Frame):
                 "lane_number": lane_number_text,
             }
             insert_rack_request = {"MissionRequest": insert_rack_dict}
-            send_request(s, insert_rack_request, 1024)
+            send_general_request(s, insert_rack_request, 1024)
             time.sleep(1)
 
         except ValueError:
@@ -585,7 +601,7 @@ class RemoveRackPage(tk.Frame):
                 "lane_number": lane_number_text,
             }
             remove_rack_request = {"MissionRequest": remove_rack_dict}
-            send_request(s, remove_rack_request, 1024)
+            send_general_request(s, remove_rack_request, 1024)
             time.sleep(1)
 
         except ValueError:
