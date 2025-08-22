@@ -84,10 +84,9 @@ class App(tk.Tk):
 
     def connect_to_server(self):
         try:
-            with s:
-                print(f"Ne conectam la {HOST}:{PORT}...")
-                s.connect((HOST,PORT))
-                print("CONNECTION SUCCESSFUL!!")
+            print(f"Ne conectam la {sr.HOST}:{sr.PORT}...")
+            s.connect((sr.HOST,sr.PORT))
+            print("CONNECTION SUCCESSFUL!!")
             return s
 
         except ConnectionRefusedError:
@@ -331,8 +330,8 @@ class TakePhotoPage(tk.Frame):
 
     def on_take_photo(self):
         try:
-            photo_request = {"Photo": None}
-            send_request(s, photo_request)
+            photo_request = {"Photo": 1 }
+            sr.send_request(s, photo_request)
             time.sleep(1)
         except Exception as e:
            messagebox.showerror("Error", f"Error: {e}")

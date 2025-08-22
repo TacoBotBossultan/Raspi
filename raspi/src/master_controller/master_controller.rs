@@ -2,6 +2,7 @@ use std::{format, sync::Arc};
 
 use crate::{
     chassis::{chassis_traits::Position, real_chassis::RealChassis},
+    image_recognition::electric_eye::ElectricEye,
     map_storage::route_storage::{MapStorage, RouteKey},
     mission_controller::{
         mission_controller::MissionController,
@@ -138,8 +139,9 @@ impl MasterController {
             Requests::Photo(_) => {
                 // un vector random cu "datele de poza"
                 //TODO: fa de aici direct poza
+                let photo = ElectricEye::take_photo();
                 let photo_response = responses::PhotoResponse {
-                    photo_data: vec![0, 1, 2, 3, 4, 5], // Example photo data
+                    photo_data: photo.unwrap(), // Example photo data
                 };
 
                 async_logger.out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza, da sa ma prefac ca virgula chiar am o camera, ii trimit poza asta")).await;

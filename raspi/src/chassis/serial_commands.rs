@@ -101,9 +101,23 @@ impl SerialCommand {
             }
             SerialCommand::SetPosition(data) => {
                 bytes.push(FirmwareCommandType::SetPosition as u8);
-                bytes.extend_from_slice(&data.x_coordinate.to_le_bytes());
-                bytes.extend_from_slice(&data.y_coordinate.to_le_bytes());
-                bytes.extend_from_slice(&data.theta.to_le_bytes());
+                let x_byte_array = data.x_coordinate.to_le_bytes();
+                let y_byte_array = data.y_coordinate.to_le_bytes();
+                let theta_byte_array = data.theta.to_le_bytes();
+
+                for byte in x_byte_array {
+                    bytes.push(byte);
+                }
+                for byte in y_byte_array {
+                    bytes.push(byte);
+                }
+                for byte in theta_byte_array {
+                    bytes.push(byte);
+                }
+
+                // bytes.push(data.x_coordinate.to_le_bytes());
+                // bytes.push(data.y_coordinate.to_le_bytes());
+                // bytes.push(data.theta.to_le_bytes());
             }
             SerialCommand::OnLED => {
                 bytes.push(FirmwareCommandType::OnLED as u8);
