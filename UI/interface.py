@@ -32,7 +32,7 @@ def send_photo_request_and_save_photo(sock):
         cnt +=1 
         print("suntem la loopu din recv:", cnt)
         print('Chunku e:', chunk)
-        if not chunk:
+        if '}}' in chunk:
             print('gataaa s-ar terminat nu mai am primit nimic, dupa:', cnt)
             break
         image_data += chunk
