@@ -15,7 +15,7 @@ def send_photo_request_and_save_photo(sock):
     req = {"Photo": None}
     req_ser = json.dumps(req)
 
-    photo_path = "received_image.jpeg"
+    photo_path = "~/Raspi_Official/UI/received_image.jpg"
 
     if os.path.exists(photo_path):
         os.remove(photo_path)
