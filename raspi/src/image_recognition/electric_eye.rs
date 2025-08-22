@@ -57,6 +57,7 @@ time.sleep(2)
 image = picam2.capture_array()
 _, buffer = cv2.imencode('.jpg', image)
 jpg_bytes = buffer.tobytes()
+picam2.close()
 "#
                 ),
                 None,
