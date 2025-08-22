@@ -39,6 +39,7 @@ def send_photo_request_and_save_photo(sock):
                 break
         except socket.timeout:
             print("am asteptat mai mult de 5 secundici")
+            break
 
     response_data = json.loads(image_data.decode("utf-8"))
     # print('Response Data cu poza:' ,response_data)
