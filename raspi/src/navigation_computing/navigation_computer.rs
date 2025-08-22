@@ -19,7 +19,7 @@ use crate::{
 
 use super::nav_computer_states::{Direction, Stopped};
 
-pub const LOOP_TIME: u64 = 40;
+pub const LOOP_TIME: u64 = 100;
 static PRE_APPEND_STR: &str = "[Navigation-Computer]";
 static LANE_SEEK_STRING: Option<&'static str> = Some("LANE_SEEK");
 
