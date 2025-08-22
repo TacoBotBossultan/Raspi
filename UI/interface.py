@@ -20,7 +20,7 @@ def send_photo_request_and_save_photo(sock):
     if os.path.exists(photo_path):
         os.remove(photo_path)
     else:
-        print("The file does not exist")
+        print("No need to delete the file its fine")
     print("Vor astia poza...")
     sock.sendall(req_ser.encode("utf-8"))
 
