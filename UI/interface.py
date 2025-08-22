@@ -396,6 +396,12 @@ class TakePhotoPage(tk.Frame):
         try:
             photo_request = {"Photo": None}
             image = send_request(s, photo_request, 1048576)
+            if image != None:
+                with open("received_image.jpg", "wb") as f:
+                    f.write(image['photo_data'])
+                print("Image received and saved successfully.")
+            else : 
+                print("Didn't receive image data!")
             time.sleep(1)
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
