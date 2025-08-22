@@ -1,7 +1,7 @@
 use std::{format, sync::Arc};
 
 use crate::{
-    chassis::{chassis_traits::Position, real_chassis::RealChassis},
+    chassis::{self, chassis_traits::Position, real_chassis::RealChassis},
     image_recognition::electric_eye::ElectricEye,
     map_storage::route_storage::{MapStorage, RouteKey},
     mission_controller::{
@@ -72,14 +72,14 @@ impl MasterController {
                     mission_receiver,
                     status_sender,
                     navigation_computer,
-                    chassis,
+                    Arc::clone(&chassis),
                 )
                 .await;
             loop {
                 tokio::select! {
                     //  handle la commenzi de pe TCP server
                     Some(cmd) = command_receiver.recv() => {
-                        let response = MasterController::handle_request(cmd.request, &mission_sender, &mut map_storage, &async_logger, self.robot_state.lock().await.clone()).await;
+                        let response = MasterController::handle_request(cmd.request, &mission_sender, &mut map_storage, &async_logger, self.robot_state.lock().await.clone(),Arc::clone(&chassis)).await;
                         if cmd.responder.send(response).is_err() {
                             async_logger.err_print(format!("{PRE_APPEND_STR:#?} Failed to send response to TCP handler.")
                             ).await;
@@ -123,6 +123,7 @@ impl MasterController {
         map_storage: &mut MapStorage,
         async_logger: &AsyncLogger,
         robot_state: RobotStates,
+        chassis: Arc<sync::Mutex<RealChassis>>,
     ) -> Responses {
         match request {
             Requests::State(_) => {
@@ -139,7 +140,9 @@ impl MasterController {
             Requests::Photo(_) => {
                 // un vector random cu "datele de poza"
                 //TODO: fa de aici direct poza
-                async_logger.out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza, da sa ma prefac ca virgula chiar am o camera, ii trimit poza asta")).await;
+                async_logger
+                    .out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza"))
+                    .await;
                 let photo = ElectricEye::take_photo();
                 let photo_response = responses::PhotoResponse {
                     photo_data: photo.unwrap(), // Example photo data
