@@ -397,6 +397,9 @@ impl RunnableNavState for Stopped {
         current_position: Position,
         chassis: Arc<sync::Mutex<RealChassis>>,
     ) -> NavComputerStates {
+        if current_position.equals(&target_position) {
+            return NavComputerStates::Stopped(Stopped);
+        }
         stop_motors(&chassis).await;
         let difference_x: i32 =
             target_position.get_x_coordinate() - current_position.get_x_coordinate();
