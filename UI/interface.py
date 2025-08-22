@@ -25,6 +25,7 @@ def send_photo_request_and_save_photo(sock):
 
 
     response_data = json.loads(image_data.decode("utf-8"))
+    print('Response Data cu poza:' ,response_data)
     # save the received data to a file
     with open("received_image.jpg", "wb") as f:
         f.write(response_data['PhotoResponse']['photo_data'])
@@ -322,6 +323,7 @@ class StoreRoutePage(tk.Frame):
         self.summary_label.grid(row=6, column=0, columnspan=2, pady=10)
 
         self.cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+
         self.cancel_btn.grid(row=7, column=0, pady=10)
         self.save_btn = tk.Button(self, text="Save", command=self.on_save)
         self.save_btn.grid(row=7, column=1, pady=10)
@@ -417,7 +419,6 @@ class TakePhotoPage(tk.Frame):
 
     def on_take_photo(self):
         try:
-            photo_request = {"Photo": None}
             send_photo_request_and_save_photo(s)
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
