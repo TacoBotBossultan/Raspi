@@ -184,8 +184,7 @@ impl NavigationComputer {
             }
             _ => {}
         }
-        let new_position =
-            Position::create(None, new_x, new_y, curr_position.get_theta()).unwrap();
+        let new_position = Position::create(None, new_x, new_y, curr_position.get_theta()).unwrap();
         *self.target_position.lock().await = new_position.clone();
     }
 
@@ -200,7 +199,13 @@ impl NavigationComputer {
             270 => new_y += distance,
             _ => (),
         }
-        let new_position = Position::create(LANE_SEEK_STRING.map(String::from), new_x, new_y, curr_pos.get_theta()).unwrap();
+        let new_position = Position::create(
+            LANE_SEEK_STRING.map(String::from),
+            new_x,
+            new_y,
+            curr_pos.get_theta(),
+        )
+        .unwrap();
         *self.target_position.lock().await = new_position.clone();
     }
 

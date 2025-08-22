@@ -1,7 +1,11 @@
 use std::{format, sync::Arc};
 
 use crate::{
-    chassis::{self, chassis_traits::Position, real_chassis::RealChassis},
+    chassis::{
+        self,
+        chassis_traits::{ChassisTraits, Position},
+        real_chassis::RealChassis,
+    },
     image_recognition::electric_eye::ElectricEye,
     map_storage::route_storage::{MapStorage, RouteKey},
     mission_controller::{
@@ -51,7 +55,7 @@ impl MasterController {
     pub async fn run(
         self: Arc<Self>,
         controller: MissionController,
-        navigation_computer: NavigationComputer,
+        navigation_computer: Arc<NavigationComputer>,
         chassis: Arc<sync::Mutex<RealChassis>>,
         mut command_receiver: mpsc::Receiver<Command>,
         mut map_storage: MapStorage,
@@ -71,7 +75,7 @@ impl MasterController {
                 .run(
                     mission_receiver,
                     status_sender,
-                    navigation_computer,
+                    Arc::clone(&navigation_computer),
                     Arc::clone(&chassis),
                 )
                 .await;
@@ -79,7 +83,7 @@ impl MasterController {
                 tokio::select! {
                     //  handle la commenzi de pe TCP server
                     Some(cmd) = command_receiver.recv() => {
-                        let response = MasterController::handle_request(cmd.request, &mission_sender, &mut map_storage, &async_logger, self.robot_state.lock().await.clone(),Arc::clone(&chassis)).await;
+                        let response = MasterController::handle_request(cmd.request, &mission_sender, &mut map_storage, &async_logger, self.robot_state.lock().await.clone(), Arc::clone(&chassis),Arc::clone(&navigation_computer)).await;
                         if cmd.responder.send(response).is_err() {
                             async_logger.err_print(format!("{PRE_APPEND_STR:#?} Failed to send response to TCP handler.")
                             ).await;
@@ -124,6 +128,7 @@ impl MasterController {
         async_logger: &AsyncLogger,
         robot_state: RobotStates,
         chassis: Arc<sync::Mutex<RealChassis>>,
+        nav_computer: Arc<NavigationComputer>,
     ) -> Responses {
         match request {
             Requests::State(_) => {
@@ -143,10 +148,16 @@ impl MasterController {
                 async_logger
                     .out_print(format!("{PRE_APPEND_STR} Aolo vrea asta o poza"))
                     .await;
+                let mut chassis_lock = chassis.lock().await;
+                chassis_lock.on_led();
+                drop(chassis_lock);
                 let photo = ElectricEye::take_photo();
                 let photo_response = responses::PhotoResponse {
                     photo_data: photo.unwrap(), // Example photo data
                 };
+                let mut chassis_lock = chassis.lock().await;
+                chassis_lock.off_led();
+                drop(chassis_lock);
 
                 Responses::PhotoResponse(photo_response)
             }

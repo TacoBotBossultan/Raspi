@@ -40,7 +40,7 @@ impl MissionController {
         self: Arc<Self>,
         mut mission_receiver: mpsc::Receiver<ExecutableMission>,
         status_sender: mpsc::Sender<MissionStatus>,
-        computer: NavigationComputer,
+        computer: Arc<NavigationComputer>,
         chassis: Arc<sync::Mutex<RealChassis>>,
     ) -> JoinHandle<()> {
         self.async_logger
@@ -49,7 +49,7 @@ impl MissionController {
         let go = Arc::clone(&self.keep_going);
         let navigation_computer = Arc::new(computer);
         spawn(async move {
-            let nav_computer_handle = navigation_computer.clone().start(chassis.clone());
+            let nav_computer_handle = navigation_computer.start(chassis.clone());
             let mut keep_loop_going = true;
             while keep_loop_going {
                 let mission = mission_receiver.recv().await.unwrap();
