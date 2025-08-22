@@ -317,7 +317,7 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
     }
 
     let mut chassis_lock = chassis_mutex.lock().await;
-    chassis_lock.set_position(Position::create(None, 69, 69, 69).unwrap());
+    chassis_lock.set_position(Position::create(None, 0, 0, 0).unwrap());
     drop(chassis_lock);
 
     clear_screen_and_return_to_zero();
