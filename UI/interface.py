@@ -15,6 +15,7 @@ def send_photo_request_and_save_photo(sock):
     req = {"Photo": None}
     req_ser = json.dumps(req)
     os.remove("received_image.jpg")
+    print('Vor astia poza...')
     sock.sendall(req_ser.encode("utf-8"))
 
     # asteapta poza
