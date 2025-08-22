@@ -21,30 +21,33 @@ def send_photo_request_and_save_photo(sock):
         os.remove(photo_path)
     else:
         print("The file does not exist")
-    print('Vor astia poza...')
+    print("Vor astia poza...")
     sock.sendall(req_ser.encode("utf-8"))
 
     # asteapta poza
+    cnt = 0
     image_data = b""
-    cnt = 0 
     while True:
-        chunk = sock.recv(4096)
-        cnt +=1 
-        print("suntem la loopu din recv:", cnt)
-        print('Chunku e:', chunk)
-        image_data += chunk
-        if b'}}' in chunk:
-            print('gataaa s-ar terminat nu mai am primit nimic, dupa:', cnt)
-            break
-
+        try:
+            chunk = sock.recv(4096)
+            cnt += 1
+            print("suntem la loopu din recv:", cnt)
+            print("Chunku e:", chunk)
+            image_data += chunk
+            if b"}}" in chunk:
+                print("gataaa s-ar terminat nu mai am primit nimic, dupa:", cnt)
+                break
+        except socket.timeout:
+            print("am asteptat mai mult de 5 secundici")
 
     response_data = json.loads(image_data.decode("utf-8"))
     # print('Response Data cu poza:' ,response_data)
     # save the received data to a file
     with open("received_image.jpg", "wb") as f:
-        f.write(bytes( response_data['PhotoResponse']['photo_data'] ))
+        f.write(bytes(response_data["PhotoResponse"]["photo_data"]))
     print("Image received and saved successfully.")
-        
+
+
 def send_general_request(sock, request_data, receive_size) -> dict | None:
     try:
         message = json.dumps(request_data).encode("utf-8")
@@ -55,7 +58,7 @@ def send_general_request(sock, request_data, receive_size) -> dict | None:
 
         response_bytes = sock.recv(receive_size)
 
-        print('Response bytes: ', response_bytes)
+        print("Response bytes: ", response_bytes)
         if not response_bytes:
             print("[CLIENT] Serverul a inchid conexiunea.")
             return None
@@ -74,6 +77,7 @@ def send_general_request(sock, request_data, receive_size) -> dict | None:
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(5)
 
 
 class App(tk.Tk):
