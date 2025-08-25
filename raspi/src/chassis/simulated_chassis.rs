@@ -73,7 +73,7 @@ impl ChassisTraits for SimulatedChassis {
         }
     }
 
-    fn get_position(&self) -> Position {
+    fn get_position(&mut self) -> Result<Position, String> {
         let curpos = self.current_position.clone();
 
         execute!(
@@ -91,7 +91,51 @@ impl ChassisTraits for SimulatedChassis {
         )
         .unwrap();
         print!("{curpos:?}");
-        curpos
+        Ok(curpos)
+    }
+
+    fn stop_motors(&mut self) {
+        todo!()
+    }
+
+    fn insert_rack(&mut self) {
+        todo!()
+    }
+
+    fn retrieve_rack(&mut self) {
+        todo!()
+    }
+
+    fn are_buttons_pressed(&mut self) -> bool {
+        todo!()
+    }
+
+    fn arrived_at_a_lane(&mut self) -> bool {
+        todo!()
+    }
+
+    fn set_position(&mut self, position: Position) {
+        todo!()
+    }
+
+    fn is_rack_inserted(&mut self) -> bool {
+        todo!()
+    }
+
+    fn is_rack_extracted(&mut self) -> bool {
+        todo!()
+    }
+
+    fn beer_me(&mut self) {
+        todo!()
+    }
+
+    fn on_led(&mut self) {
+        todo!()
+    }
+
+    fn off_led(&mut self) {
+        todo!()
     }
 }
 
@@ -99,7 +143,7 @@ impl SimulatedChassis {
     pub fn new() -> Self {
         let motor_speeds = HashMap::new();
         let motor_efficiency_values = HashMap::new();
-        let current_position = Position::create(None, 0, 0, 0).unwrap();
+        let current_position = Position::new(None, 0, 0, 0).unwrap();
         let chassis_data_positions = [
             (35, 5),  // top-right motor
             (15, 5),  // top-left motor
@@ -259,18 +303,18 @@ impl SimulatedChassis {
 
         let new_x = (max(
             (self.current_position.get_x_coordinate() as f32 + approximated_absolute_x_movement)
-                .ceil() as u32,
+                .ceil() as i32,
             0,
-        )) as u32;
+        )) as i32;
         let new_y = (max(
             (self.current_position.get_y_coordinate() as f32 + approximated_absolute_y_movement)
-                .ceil() as u32,
+                .ceil() as i32,
             0,
-        )) as u32;
+        )) as i32;
         let new_theta = ((self.current_position.get_theta() as f32 + absolute_theta_change)
             .rem_euclid(360.0)) as u16;
 
-        let new_pos: Position = Position::create(None, new_x, new_y, new_theta).unwrap();
+        let new_pos: Position = Position::new(None, new_x, new_y, new_theta).unwrap();
 
         self.current_position = new_pos;
     }
