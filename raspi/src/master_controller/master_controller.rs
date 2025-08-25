@@ -244,7 +244,7 @@ impl MasterController {
 
                 match mission.route {
                     RouteType::RouteKey(route_key) => {
-                        if let Some(route) = map_storage.get_route(&route_key) {
+                        if let Ok(route) = map_storage.get_route(&route_key) {
                             executable_mission = ExecutableMission::new(mission.action, route);
                         } else {
                             return Responses::GeneralResponse(GeneralResponse::new(
