@@ -48,7 +48,7 @@ def send_photo_request_and_save_photo(sock):
     with open("received_image.jpg", "wb") as f:
         f.write(bytes(response_data["PhotoResponse"]["photo_data"]))
     print("Image received and saved successfully.")
-    img_bytes = bytes(response_data)
+    img_bytes = bytes(response_data["PhotoResponse"]["photo_data"])
     image = Image.open(io.BytesIO(img_bytes))
 
     # Create a new window
@@ -98,10 +98,10 @@ s.settimeout(5)
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        # self.conn = self.connect_to_server()
-        # if not self.conn:
-        #     self.destroy()
-        #     return
+        self.conn = self.connect_to_server()
+        if not self.conn:
+            self.destroy()
+            return
 
         self.title("TacoBot user interface")
         self.geometry("1000x700")
@@ -479,6 +479,7 @@ class TakePhotoPage(tk.Frame):
     def on_take_photo(self):
         try:
             send_photo_request_and_save_photo(s)
+            time.sleep(1)
 
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")

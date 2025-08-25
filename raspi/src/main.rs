@@ -37,6 +37,8 @@ const DEADZONE_LOWER: i32 = 115;
 const DEADZONE_UPPER: i32 = 135;
 const ALL_STOP: u8 = 100;
 const IMPOSSIBLE_VALUE: i32 = 6969;
+static HOST_IP : &str = "127.0.0.1";
+const HOST_PORT: u32 = 8080;
 
 pub struct ControllerEvents {
     pub left_motor_bank_value: i32,
@@ -102,9 +104,9 @@ async fn main() {
         let master_control = MasterController::new();
         let master_arc = Arc::new(master_control);
 
-        let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
+        let listener = TcpListener::bind(format!("{HOST_IP}:{HOST_PORT:?}")).await.unwrap();
         async_logger
-            .out_print(format!("{PRE_APPEND_STR} server asculta pe 127.0.0.1:8080"))
+            .out_print(format!("{PRE_APPEND_STR} server asculta pe {HOST_IP}:{HOST_PORT:?}"))
             .await;
 
         let (mut stream, addr) = listener.accept().await.unwrap();
