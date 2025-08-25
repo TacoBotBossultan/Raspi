@@ -82,94 +82,96 @@ impl Default for ControllerEvents {
 
 #[tokio::main]
 async fn main() {
-    execute!(stdout(), Hide).unwrap();
+    loop {
+        execute!(stdout(), Hide).unwrap();
 
-    let chassis = RealChassis::new();
-    let chassis_arc = Arc::new(Mutex::new(chassis));
-    clear_screen_and_return_to_zero();
-    if wait_for_controller("Wireless Controller", chassis_arc.clone()).await {
-        return;
-    }
+        let chassis = RealChassis::new();
+        let chassis_arc = Arc::new(Mutex::new(chassis));
+        clear_screen_and_return_to_zero();
+        if wait_for_controller("Wireless Controller", chassis_arc.clone()).await {
+            return;
+        }
 
-    let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
-    let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
-    let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
-    let nav_computer = Arc::new(NavigationComputer::new());
-    let mission_controller = MissionController::new(async_logger.clone());
-    let (master_controller_command_sender, command_receiver) = mpsc::channel(32);
-    let map_storage = MapStorage::new();
-    let master_control = MasterController::new();
-    let master_arc = Arc::new(master_control);
+        let stdout_mutex = Arc::new(Mutex::new(io::stdout()));
+        let stderr_mutex = Arc::new(Mutex::new(io::stderr()));
+        let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
+        let nav_computer = Arc::new(NavigationComputer::new());
+        let mission_controller = MissionController::new(async_logger.clone());
+        let (master_controller_command_sender, command_receiver) = mpsc::channel(32);
+        let map_storage = MapStorage::new();
+        let master_control = MasterController::new();
+        let master_arc = Arc::new(master_control);
 
-    let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
-    async_logger
-        .out_print(format!("{PRE_APPEND_STR} server asculta pe 127.0.0.1:8080"))
-        .await;
+        let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
+        async_logger
+            .out_print(format!("{PRE_APPEND_STR} server asculta pe 127.0.0.1:8080"))
+            .await;
 
-    let (mut stream, addr) = listener.accept().await.unwrap();
-    async_logger
-        .out_print(format!("{PRE_APPEND_STR} Avem o conexiune de la: {addr}"))
-        .await;
+        let (mut stream, addr) = listener.accept().await.unwrap();
+        async_logger
+            .out_print(format!("{PRE_APPEND_STR} Avem o conexiune de la: {addr}"))
+            .await;
 
-    let master_controller_command_sender_clone = master_controller_command_sender.clone();
-    let mut logger_clone = async_logger.clone();
+        let master_controller_command_sender_clone = master_controller_command_sender.clone();
+        let mut logger_clone = async_logger.clone();
 
-    let join_handle = master_arc
-        .clone()
-        .run(
-            mission_controller,
-            Arc::clone(&nav_computer),
-            chassis_arc,
-            command_receiver,
-            map_storage,
-            async_logger.clone(),
-        )
-        .await;
+        let join_handle = master_arc
+            .clone()
+            .run(
+                mission_controller,
+                Arc::clone(&nav_computer),
+                chassis_arc,
+                command_receiver,
+                map_storage,
+                async_logger.clone(),
+            )
+            .await;
 
-    clear_screen_and_return_to_zero();
-    println!("Running, press q or x to quit...");
-    let notify = Arc::new(Notify::new());
-    let notify_clone = notify.clone();
-    let tcp_handle = spawn(async move {
-        loop {
-            tokio::select! {
-                _ = notify_clone.notified() => {
-                    println!("Oprim citirea pe TCP.");
-                    break;
-                }
+        clear_screen_and_return_to_zero();
+        println!("Running, press q or x to quit...");
+        let notify = Arc::new(Notify::new());
+        let notify_clone = notify.clone();
+        let tcp_handle = spawn(async move {
+            loop {
+                tokio::select! {
+                    _ = notify_clone.notified() => {
+                        println!("Oprim citirea pe TCP.");
+                        break;
+                    }
 
-                result = handle_connection(
-                &mut stream,
-                &master_controller_command_sender_clone,
-                &mut logger_clone) => {
-                    match result {
-                        Ok(_) => (),
-                        Err(_) => {
-                            println!("Eroare pe conexiunea de TCP, boss!");
+                    result = handle_connection(
+                    &mut stream,
+                    &master_controller_command_sender_clone,
+                    &mut logger_clone) => {
+                        match result {
+                            Ok(_) => (),
+                            Err(_) => {
+                                println!("Eroare pe conexiunea de TCP, boss!");
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
 
-    let read_duration = Duration::from_millis(50);
-    loop {
-        if poll(read_duration).unwrap()
-            && let Event::Key(event) = read().unwrap()
-            && let KeyCode::Char('q') | KeyCode::Char('x') = event.code
-        {
-            clear_screen_and_return_to_zero();
-            println!("Quitting.");
-            notify.notify_one();
-            tcp_handle.await.unwrap();
-            master_arc.stop();
-            join_handle.await.unwrap();
-            sleep(Duration::from_millis(250)).await;
-            clear_screen_and_return_to_zero();
-            execute!(stdout(), Show).unwrap();
-            break;
-        }
+        let read_duration = Duration::from_millis(50);
+        loop {
+            if poll(read_duration).unwrap()
+                && let Event::Key(event) = read().unwrap()
+                && let KeyCode::Char('q') | KeyCode::Char('x') = event.code
+            {
+                clear_screen_and_return_to_zero();
+                println!("Quitting.");
+                notify.notify_one();
+                tcp_handle.await.unwrap();
+                master_arc.stop();
+                join_handle.await.unwrap();
+                sleep(Duration::from_millis(250)).await;
+                clear_screen_and_return_to_zero();
+                execute!(stdout(), Show).unwrap();
+                break;
+            }
+        }     
     }
 }
 
@@ -289,7 +291,9 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
         device = Device::open(&path);
     }
     println!("Press (X) or triangle to continue...");
-    println!("Pressing (X) will continue running the app after you're done with the controller, pressing the triangle button will quit the app when you're done with the controller.");
+    println!("Pressing (X) will continue running the app after you're done with the controller.");
+    println!("Pressing the triangle button will quit the app when you're done with the controller.");
+    println!("Pressing the square button will quit the app right now.");
 
     let mut controller = device.unwrap();
     let interval = Duration::from_millis(20);
@@ -312,6 +316,9 @@ async fn wait_for_controller(controller_name: &str, chassis_mutex: Arc<Mutex<Rea
             }
             if code == EvDevKeyCode::BTN_SOUTH {
                 break 'outer;
+            }
+            if code == EvDevKeyCode::BTN_WEST {
+                return true;
             }
         }
     }
