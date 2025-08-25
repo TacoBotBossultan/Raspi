@@ -217,7 +217,7 @@ impl MissionController {
                 keep_loop_going = *go.lock().await;
             }
             navigation_computer.stop_moving().await;
-            navigation_computer.stop().await;
+            navigation_computer.kill().await;
             nav_computer_handle.await.unwrap();
             let mut chassis_lock = chassis.lock().await;
             chassis_lock.stop_motors();

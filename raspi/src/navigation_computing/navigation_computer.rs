@@ -98,7 +98,7 @@ impl NavigationComputer {
         })
     }
 
-    pub async fn stop(&self) {
+    pub async fn kill(&self) {
         *self.keep_going.lock().await = false;
     }
 
