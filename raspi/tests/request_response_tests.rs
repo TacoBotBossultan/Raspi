@@ -1,7 +1,6 @@
 use raspi::{
     mission_controller::missions::ActionType,
     navigation_computing::nav_computer_states::Direction::{Forward, Right, RotateLeft},
-    utils::store_route_helper::StoreRouteHelper,
     request_response::{
         requests::{DefineHomeRequest, MissionRequest, PhotoRequest, Requests, StateReqest, StoreRouteRequest},
         responses::{
@@ -32,7 +31,7 @@ fn deser_photo_request() {
         }
     };
 
-    assert_eq!(req, Requests::PhotoReqest(PhotoRequest::new()));
+    assert_eq!(req, Requests::PhotoRequest(PhotoRequest::new()));
 }
 
 #[test]
@@ -52,7 +51,7 @@ fn deser_robot_state_request() {
         }
     };
 
-    assert_eq!(req, Requests::StateReqest(StateReqest::new()));
+    assert_eq!(req, Requests::StateRequest(StateReqest::new()));
 }
 
 #[test]

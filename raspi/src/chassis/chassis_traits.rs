@@ -38,12 +38,12 @@ pub enum MotorIndex {
 #[derive(Debug, PartialEq, Eq, Hash, Clone, FromPrimitive, Serialize, Deserialize)]
 pub enum EngineOrder {
     FullAhead = 200,
-    SlowAhead = 125,
+    SlowAhead = 105,
     UnDeadSlowAhead = 103,
     DeadSlowAhead = 102,
     Stop = 100,
     DeadSlowAstern = 98,
-    SlowAstern = 75,
+    SlowAstern = 95,
     FullAstern = 1,
 }
 
@@ -106,9 +106,9 @@ impl Position {
     }
 
     pub fn equals(&self, other: &Position) -> bool {
-        if self.x_coordinate.abs_diff(other.x_coordinate) <= 1
-            && self.y_coordinate.abs_diff(other.y_coordinate) <= 1
-            && self.theta.abs_diff(other.theta) <= 1
+        if self.x_coordinate.abs_diff(other.x_coordinate) <= 25
+            && self.y_coordinate.abs_diff(other.y_coordinate) <= 25
+            && self.theta.abs_diff(other.theta) <= 10
         {
             return true;
         }
@@ -116,8 +116,8 @@ impl Position {
     }
 
     pub fn equals_coordinates(&self, other: &Position) -> bool {
-        if self.x_coordinate.abs_diff(other.x_coordinate) <= 1
-            && self.y_coordinate.abs_diff(other.y_coordinate) <= 1
+        if self.x_coordinate.abs_diff(other.x_coordinate) <= 25
+            && self.y_coordinate.abs_diff(other.y_coordinate) <= 25
         {
             return true;
         }
@@ -125,7 +125,7 @@ impl Position {
     }
 
     pub fn equals_theta(&self, other: &Position) -> bool {
-        self.theta.abs_diff(other.theta) == 0
+        self.theta.abs_diff(other.theta) <= 10
     }
 }
 

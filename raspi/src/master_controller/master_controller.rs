@@ -131,7 +131,7 @@ impl MasterController {
         nav_computer: Arc<NavigationComputer>,
     ) -> Responses {
         match request {
-            Requests::StateReqest(_) => {
+            Requests::StateRequest(_) => {
                 // deocamdata sigur nu face nimic (mirel state gen lmao)
                 let state_response = responses::StateResponse { state: robot_state };
                 async_logger
@@ -142,7 +142,7 @@ impl MasterController {
                 Responses::StateResponse(state_response)
             }
 
-            Requests::PhotoReqest(_) => {
+            Requests::PhotoRequest(_) => {
                 // un vector random cu "datele de poza"
                 //TODO: fa de aici direct poza
                 async_logger
@@ -240,7 +240,10 @@ impl MasterController {
                     });
                 }
 
-                let executable_mission: ExecutableMission;
+                let mut executable_mission: ExecutableMission = ExecutableMission::new(
+                    crate::mission_controller::missions::ActionType::GoToPosition,
+                    vec![],
+                );
 
                 match mission.route {
                     RouteType::RouteKey(route_key) => {

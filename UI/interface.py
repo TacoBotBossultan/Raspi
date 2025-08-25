@@ -518,9 +518,11 @@ class GoToPositionPage(tk.Frame):
             y_text = int(self.y_entry.get())
             theta_text = int(self.theta_entry.get())
             coordinates_dict = {
-                "x_coordinate": x_text,
-                "y_coordinate": y_text,
-                "theta": theta_text,
+                "AbsolutePosition": {
+                    "x_coordinate": x_text,
+                    "y_coordinate": y_text,
+                    "theta": theta_text,
+                }
             }
             go_to_position_dict = {
                 "action": "GoToPosition",

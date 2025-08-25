@@ -48,7 +48,7 @@ import numpy as np
 
 picam2 = Picamera2()
 config = picam2.create_still_configuration(
-    transform=Transform(rotation=180), main={"size": (1000, 1000), "format" : "RGB888"}
+    transform=Transform(rotation=180), main={"size": (1000, 1000)}
 )
 picam2.configure(config)
 picam2.start()

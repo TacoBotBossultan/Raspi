@@ -47,12 +47,13 @@ pub enum RouteType {
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, PartialEq)]
 pub enum Requests {
-    PhotoReqest(PhotoRequest),
-    StateReqest(StateReqest),
+    PhotoRequest(PhotoRequest),
+    StateRequest(StateReqest),
     StoreRouteRequest(StoreRouteRequest),
     MissionRequest(MissionRequest),
     DefineHomeRequest(DefineHomeRequest),
 }
+
 impl PhotoRequest {
     pub fn new() -> PhotoRequest {
         print!("Photo Request!");
