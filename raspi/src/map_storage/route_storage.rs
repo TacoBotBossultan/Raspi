@@ -373,7 +373,7 @@ impl MapStorage {
         Ok(positions_vector)
     }
 
-    pub fn compute_route_from_end(
+    pub fn compute_route_from_end_request(
         &mut self,
         end_position: Position,
         route_request: StoreRouteRequest,
@@ -429,8 +429,8 @@ impl MapStorage {
             start_position = self
                 .position_storage
                 .search_by_name(new_route_key.start_name.clone())?;
-            positions_vector =
-                self.compute_route_from_start(start_position.clone(), route_request.clone())?;
+            positions_vector = self
+                .compute_route_from_start_request(start_position.clone(), route_request.clone())?;
         } else if self
             .position_storage
             .is_in_storage_by_name(new_route_key.destination_name.clone())
@@ -439,7 +439,7 @@ impl MapStorage {
                 .position_storage
                 .search_by_name(new_route_key.destination_name.clone())?;
             positions_vector =
-                self.compute_route_from_end(end_position.clone(), route_request.clone())?;
+                self.compute_route_from_end_request(end_position.clone(), route_request.clone())?;
         } else {
             return Err("Start and end positions unknown.".to_string());
         }
