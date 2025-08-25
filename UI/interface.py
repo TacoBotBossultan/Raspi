@@ -82,10 +82,10 @@ s.settimeout(5)
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.conn = self.connect_to_server()
-        if not self.conn:
-            self.destroy()
-            return
+        # self.conn = self.connect_to_server()
+        # if not self.conn:
+        #     self.destroy()
+        #     return
 
         self.title("TacoBot user interface")
         self.geometry("1000x700")
@@ -101,8 +101,10 @@ class App(tk.Tk):
             GoAndTakePhotoPage,
             TakePhotoPage,
             GoToPositionPage,
+            RelativeMvtPage,
             InsertRackPage,
             RemoveRackPage,
+            BeerMePage,
         ):
             page_name = P.__name__
             frame = P(parent=self.container, controller=self)
@@ -137,6 +139,12 @@ class App(tk.Tk):
             text="Go to position",
             command=lambda: self.show_page("GoToPositionPage"),
         )
+        relative_mvt_button = tk.Button(
+            nav_frame,
+            text="Relative movement",
+            command=lambda: self.show_page("RelativeMvtPage"),
+        )
+
         insert_rack_button = tk.Button(
             nav_frame,
             text="Insert Rack",
@@ -148,13 +156,21 @@ class App(tk.Tk):
             command=lambda: self.show_page("RemoveRackPage"),
         )
 
+        beer_me_button = tk.Button(
+            nav_frame,
+            text="Beer me",
+            command=lambda: self.show_page("BeerMePage"),
+        )
+
         define_home_button.pack(side="left", expand=True, fill="x")
         store_route_button.pack(side="left", expand=True, fill="x")
         take_photo_button.pack(side="left", expand=True, fill="x")
         go_and_take_photo_button.pack(side="left", expand=True, fill="x")
         go_to_position_button.pack(side="left", expand=True, fill="x")
+        relative_mvt_button.pack(side="left", expand=True, fill="x")
         insert_rack_button.pack(side="left", expand=True, fill="x")
         remove_rack_button.pack(side="left", expand=True, fill="x")
+        beer_me_button.pack(side="left", expand=True, fill="x")
 
         self.show_page("DefineHomePage")
 
@@ -500,6 +516,113 @@ class GoToPositionPage(tk.Frame):
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
+
+
+class RelativeMvtPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.direction_label = tk.Label(self, text="Direction:")
+        self.direction_label.grid(row=3, column=0, padx=10, pady=5, sticky="e")
+
+        self.direction_entry = ttk.Combobox(
+            self,
+            values=[
+                "Forward",
+                "Backward",
+                "Right",
+                "Left",
+                "Rotate Right",
+                "Rotate Left",
+            ],
+            state="readonly",
+        )
+        self.direction_entry.set("Choose a direction...")
+        self.direction_entry.grid(row=3, column=1, padx=10, pady=5)
+        self.direction_entry.bind("<<ComboboxSelected>>", self.on_direction_change)
+
+        self.value_label = tk.Label(self, text="Value:")
+        self.value_label.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+
+        self.value_entry = tk.Entry(self, width=30)
+        self.value_entry.grid(row=4, column=1, padx=10, pady=5)
+
+        self.submit_btn = tk.Button(self, text="Submit", command=self.on_submit)
+        self.submit_btn.grid(row=5, column=0, padx=10, pady=10)
+
+        self.stop_btn = tk.Button(self, text="Stop", command=self.on_stop)
+        self.stop_btn.grid(row=5, column=1, padx=10, pady=10)
+
+        self.submitted_texts = []
+
+        self.summary_label = tk.Label(self, text="", justify="left", font=("Arial", 12))
+
+    def on_direction_change(self, event):
+        option = self.direction_entry.get()
+        if option.startswith("Rotate"):
+            self.value_label.config(text="Value (in degrees):")
+        else:
+            self.value_label.config(text="Value (in mm):")
+
+    def on_submit(self):
+        option = self.direction_entry.get()
+        text = self.value_entry.get()
+
+        if option != "Choose a direction..." and text.strip():
+            self.submitted_texts.append((option, text))
+
+        self.value_entry.delete(0, tk.END)
+
+    def on_stop(self):
+        self.direction_label.grid_remove()
+        self.direction_entry.grid_remove()
+        self.value_label.grid_remove()
+        self.value_entry.grid_remove()
+        self.submit_btn.grid_remove()
+        self.stop_btn.grid_remove()
+
+        summary = "Summary:\n\n\tMovements:\n"
+        for i, (opt, txt) in enumerate(self.submitted_texts, start=1):
+            summary += f"  \t\tStep {i}: {opt} | {txt}\n"
+
+        self.summary_label.config(text=summary)
+        self.summary_label.grid(row=6, column=0, columnspan=2, pady=10)
+
+        self.cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+        self.cancel_btn.grid(row=7, column=0, pady=10)
+
+        self.save_btn = tk.Button(self, text="Save", command=self.on_save)
+        self.save_btn.grid(row=7, column=1, pady=10)
+
+    def on_cancel(self):
+        self.summary_label.grid_forget()
+        self.cancel_btn.grid_forget()
+        self.save_btn.grid_forget()
+
+        self.direction_label.grid()
+        self.direction_entry.grid()
+        self.value_label.grid()
+        self.value_entry.grid()
+        self.submit_btn.grid()
+        self.stop_btn.grid()
+
+    def on_save(self):
+        try:
+            route_list = []
+            for opt, txt in self.submitted_texts:
+                current_dict = {"direction_type": opt, "value": txt}
+                route_list.append(current_dict)
+
+            mission_request = {"action": "GoToPosition", "route": route_list}
+
+            print("Mission request:", mission_request)
+
+            time.sleep(1)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
+
+        self.on_cancel()
 
 
 class InsertRackPage(tk.Frame):
