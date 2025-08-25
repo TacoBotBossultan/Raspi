@@ -27,7 +27,7 @@ impl DrivESP {
             Ok(serial_response) => match serial_response {
                 SerialResponse::Yes => Err("No position found".to_string()),
                 SerialResponse::No => Err("No position found".to_string()),
-                SerialResponse::HavePosition(have_position_response) => Position::create(
+                SerialResponse::HavePosition(have_position_response) => Position::new(
                     None,
                     have_position_response.x,
                     have_position_response.y,

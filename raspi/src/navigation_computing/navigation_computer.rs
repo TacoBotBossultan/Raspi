@@ -33,7 +33,7 @@ pub struct NavigationComputer {
 
 impl NavigationComputer {
     pub fn new() -> Self {
-        let init_position = Position::create(None, 0, 0, 0).unwrap();
+        let init_position = Position::new(None, 0, 0, 0).unwrap();
         let current_position = Arc::new(sync::Mutex::new(init_position.clone()));
         let target_position = Arc::new(sync::Mutex::new(init_position));
         let keep_going = Arc::new(sync::Mutex::new(true));
@@ -60,7 +60,7 @@ impl NavigationComputer {
             let mut keep_loop_going = true;
             let mut current_state = NavComputerStates::Stopped(Stopped::new());
             let mut chassis_lock = chassis.lock().await;
-            (*chassis_lock).set_position(Position::create(None, 0, 0, 0).unwrap());
+            (*chassis_lock).set_position(Position::new(None, 0, 0, 0).unwrap());
             drop(chassis_lock);
             while keep_loop_going {
                 chassis_lock = chassis.lock().await;
@@ -196,7 +196,7 @@ impl NavigationComputer {
             }
             _ => {}
         }
-        let new_position = Position::create(None, new_x, new_y, curr_position.get_theta()).unwrap();
+        let new_position = Position::new(None, new_x, new_y, curr_position.get_theta()).unwrap();
         *self.target_position.lock().await = new_position.clone();
     }
 
@@ -211,7 +211,7 @@ impl NavigationComputer {
             270 => new_y += distance,
             _ => (),
         }
-        let new_position = Position::create(
+        let new_position = Position::new(
             LANE_SEEK_STRING.map(String::from),
             new_x,
             new_y,
@@ -232,7 +232,7 @@ impl NavigationComputer {
             270 => new_x += distance,
             _ => (),
         }
-        let new_position = Position::create(None, new_x, new_y, curr_pos.get_theta()).unwrap();
+        let new_position = Position::new(None, new_x, new_y, curr_pos.get_theta()).unwrap();
         *self.target_position.lock().await = new_position.clone();
     }
 }

@@ -412,7 +412,7 @@ impl RunnableNavState for Stopped {
         let decelerating_position_y: i32 =
             6 * (difference_y) / 10 + current_position.get_y_coordinate();
 
-        let decelerating_position = Position::create(
+        let decelerating_position = Position::new(
             None,
             decelerating_position_x,
             decelerating_position_y,

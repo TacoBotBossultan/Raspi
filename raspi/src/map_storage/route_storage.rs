@@ -109,7 +109,7 @@ pub fn move_to_next_position(
 
         _ => {}
     };
-    Position::create(None, x_coord, y_coord, theta as u16)
+    Position::new(None, x_coord, y_coord, theta as u16)
 }
 
 pub fn move_to_previous_position(
@@ -215,7 +215,7 @@ pub fn move_to_previous_position(
 
         _ => {}
     };
-    Position::create(None, x_coord, y_coord, theta as u16)
+    Position::new(None, x_coord, y_coord, theta as u16)
 }
 
 #[derive(Debug, Clone)]

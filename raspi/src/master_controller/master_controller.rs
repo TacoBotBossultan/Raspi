@@ -166,7 +166,7 @@ impl MasterController {
                 async_logger
                     .out_print(format!("{PRE_APPEND_STR} Defining home: "))
                     .await;
-                let home_position = Position::create(
+                let home_position = Position::new(
                     Some("Home".to_string()),
                     home_coords.get_x(),
                     home_coords.get_y(),
@@ -252,12 +252,17 @@ impl MasterController {
                         y_coordinate,
                         theta,
                     } => {
-                        if let Ok(position) =  Position::create(None, x_coordinate, y_coordinate, theta) {
-                        executable_mission =
-                            ExecutableMission::new(mission.action, vec![position]) ;
-                        }
-                        else {
-                            return Responses::GeneralResponse::new(400,format!("Position x : {x_coordinate:#?}, y : {y_coordinate:#?}, theta : {theta:#?}"));
+                        if let Ok(position) = Position::new(None, x_coordinate, y_coordinate, theta)
+                        {
+                            executable_mission =
+                                ExecutableMission::new(mission.action, vec![position]);
+                        } else {
+                            return Responses::GeneralResponse::new(
+                                400,
+                                format!(
+                                    "Position x : {x_coordinate:#?}, y : {y_coordinate:#?}, theta : {theta:#?}"
+                                ),
+                            );
                         }
                     }
                     RouteType::RelativeMovement(direction_moves) => todo!(),

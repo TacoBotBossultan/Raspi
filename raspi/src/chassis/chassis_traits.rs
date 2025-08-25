@@ -62,7 +62,7 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn create(
+    pub fn new(
         position_name: Option<String>,
         x_coordinate: i32,
         y_coordinate: i32,
