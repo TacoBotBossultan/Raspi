@@ -22,7 +22,7 @@ pub struct StoreRoute {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct MissionRequest {
     pub action: ActionType,
-    pub route: RouteKey,
+    pub route: RouteType,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -30,6 +30,18 @@ pub struct DefineHome {
     home_x: i32,
     home_y: i32,
     home_theta: u16,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub enum RouteType {
+    RouteKey(RouteKey),
+    AbsolutePosition {
+        x_coordinate: i32,
+        y_coordinate: i32,
+        theta: u16,
+    },
+    RelativeMovement(VecDeque<DirectionMove>),
 }
 
 #[allow(dead_code)]
@@ -117,7 +129,7 @@ impl MissionRequest {
     pub fn new(action: ActionType, start_name: String, destination_name: String) -> Self {
         MissionRequest {
             action,
-            route: RouteKey::new(start_name, destination_name),
+            route: RouteType::RouteKey(RouteKey::new(start_name, destination_name)),
         }
     }
 }
