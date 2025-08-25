@@ -244,8 +244,14 @@ impl MasterController {
 
                 match mission.route {
                     RouteType::RouteKey(route_key) => {
-                        let route = map_storage.get_route(&route_key).unwrap();
-                        executable_mission = ExecutableMission::new(mission.action, route);
+                        if let Some(route) = map_storage.get_route(&route_key) {
+                            executable_mission = ExecutableMission::new(mission.action, route);
+                        } else {
+                            return Responses::GeneralResponse(GeneralResponse::new(
+                                400,
+                                format!("Nu exista rute pt pozitiile cu numele {route_key:#?}"),
+                            ));
+                        }
                     }
                     RouteType::AbsolutePosition {
                         x_coordinate,
@@ -265,7 +271,7 @@ impl MasterController {
                             ));
                         }
                     }
-                    RouteType::RelativeMovement(direction_moves) => todo!(),
+                    RouteType::RelativeMovement(direction_moves) => {}
                 }
 
                 if mission_sender.send(executable_mission).await.is_err() {
