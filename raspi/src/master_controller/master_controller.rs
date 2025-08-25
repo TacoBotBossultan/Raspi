@@ -251,7 +251,15 @@ impl MasterController {
                         x_coordinate,
                         y_coordinate,
                         theta,
-                    } => todo!(),
+                    } => {
+                        if let Ok(position) =  Position::create(None, x_coordinate, y_coordinate, theta) {
+                        executable_mission =
+                            ExecutableMission::new(mission.action, vec![position]) ;
+                        }
+                        else {
+                            return Responses::GeneralResponse::new(400,format!("Position x : {x_coordinate:#?}, y : {y_coordinate:#?}, theta : {theta:#?}"));
+                        }
+                    }
                     RouteType::RelativeMovement(direction_moves) => todo!(),
                 }
 
