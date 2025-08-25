@@ -102,6 +102,7 @@ class App(tk.Tk):
             TakePhotoPage,
             GoToPositionPage,
             RelativeMvtPage,
+            ExecuteRoutePage,
             InsertRackPage,
             RemoveRackPage,
             BeerMePage,
@@ -139,10 +140,17 @@ class App(tk.Tk):
             text="Go to position",
             command=lambda: self.show_page("GoToPositionPage"),
         )
+
         relative_mvt_button = tk.Button(
             nav_frame,
             text="Relative movement",
             command=lambda: self.show_page("RelativeMvtPage"),
+        )
+
+        execute_route_button = tk.Button(
+            nav_frame,
+            text="Execute route",
+            command=lambda: self.show_page("ExecuteRoutePage"),
         )
 
         insert_rack_button = tk.Button(
@@ -150,6 +158,7 @@ class App(tk.Tk):
             text="Insert Rack",
             command=lambda: self.show_page("InsertRackPage"),
         )
+
         remove_rack_button = tk.Button(
             nav_frame,
             text="Remove Rack",
@@ -168,6 +177,7 @@ class App(tk.Tk):
         go_and_take_photo_button.pack(side="left", expand=True, fill="x")
         go_to_position_button.pack(side="left", expand=True, fill="x")
         relative_mvt_button.pack(side="left", expand=True, fill="x")
+        execute_route_button.pack(side="left", expand=True, fill="x")
         insert_rack_button.pack(side="left", expand=True, fill="x")
         remove_rack_button.pack(side="left", expand=True, fill="x")
         beer_me_button.pack(side="left", expand=True, fill="x")
@@ -625,6 +635,52 @@ class RelativeMvtPage(tk.Frame):
         self.on_cancel()
 
 
+class ExecuteRoutePage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        tk.Label(self, text="Starting position:").grid(
+            row=0, column=0, padx=10, pady=5, sticky="e"
+        )
+        self.starting_entry = tk.Entry(self, width=30)
+        self.starting_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        tk.Label(self, text="Destination position:").grid(
+            row=1, column=0, padx=10, pady=5, sticky="e"
+        )
+        self.destination_entry = tk.Entry(self, width=30)
+        self.destination_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        self.go_btn = tk.Button(self, text="   Go   ", command=self.on_submit)
+        self.go_btn.grid(row=2, column=0, padx=10, pady=10)
+
+        self.cancel_btn = tk.Button(self, text="Cancel", command=self.on_cancel)
+        self.cancel_btn.grid(row=2, column=1, padx=10, pady=10)
+
+        self.result_label = tk.Label(self, text="", fg="blue", font=("Arial", 12))
+        self.result_label.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def on_submit(self):
+        try:
+            start_text = self.starting_entry.get()
+            dest_text = self.destination_entry.get()
+            route_dict = {"start_name": start_text, "destination_name": dest_text}
+            mission_request_dict = {"action": "GoToPosition", "route": route_dict}
+            mission_request = {"MissionRequest": mission_request_dict}
+            send_general_request(s, mission_request, 1024)
+            time.sleep(1)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
+
+        self.starting_entry.delete(0, tk.END)
+        self.destination_entry.delete(0, tk.END)
+
+    def on_cancel(self):
+        self.starting_entry.delete(0, tk.END)
+        self.destination_entry.delete(0, tk.END)
+
+
 class InsertRackPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -773,6 +829,5 @@ class BeerMePage(tk.Frame):
             beer_me_request = {"BeerMe": None}
             send_general_request(s, beer_me_request, 1024)
             time.sleep(1)
-
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
