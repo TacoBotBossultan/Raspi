@@ -1,0 +1,31 @@
+// For more info, see https://containers.dev/implementors/json_reference/
+{
+  "name": "Rust Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/rust:1-bookworm",
+  "features": {
+    // Optionally add features here, for example, 'git' or 'zsh'
+    // "ghcr.io/devcontainers/features/common-utils:2": {
+    //   "installZsh": true,
+    //   "configureZshAsDefaultShell": true
+    // }
+  },
+  "postCreateCommand": {
+    // Optional: Install additional tools after the container is created.
+    // This command installs libudev-dev, which is often needed for embedded or hardware projects.
+    "install_dependencies": "sudo apt-get update && sudo apt-get install -y libudev-dev"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Rust-specific settings for the VS Code editor
+        "rust-analyzer.checkOnSave.command": "clippy"
+      },
+      "extensions": [
+        // Essential extensions for Rust development
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb"
+      ]
+    }
+  }
+}
