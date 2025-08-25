@@ -174,10 +174,10 @@ impl MasterController {
                 )
                 .unwrap();
                 map_storage.store_position(home_position.clone());
-                let chassis_lock = chassis.lock();
-                chassis_lock.await.set_position(home_position);
+                let mut chassis_lock = chassis.lock().await;
+                chassis_lock.set_position(home_position);
                 drop(chassis_lock);
-                nav_computer.stop_moving().await;
+                nav_computer.stop_moving(chassis).await;
 
                 Responses::GeneralResponse(responses::GeneralResponse {
                     status: 200,

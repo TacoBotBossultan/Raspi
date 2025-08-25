@@ -50,6 +50,7 @@ impl MissionController {
         spawn(async move {
             let nav_computer_handle = navigation_computer.clone().start(chassis.clone());
             let mut keep_loop_going = true;
+            let chassis_clone = chassis.clone();
             while keep_loop_going {
                 let mission = mission_receiver.recv().await.unwrap();
                 self.async_logger
@@ -115,7 +116,7 @@ impl MissionController {
                                 drop(chassis_lock);
                                 sleep(SHORT_SLEEP).await;
                             }
-                            navigation_computer.stop_moving().await;
+                            navigation_computer.stop_moving(chassis.clone()).await;
                             chassis_lock = chassis.lock().await;
                             chassis_lock.stop_motors();
                             drop(chassis_lock);
@@ -171,7 +172,7 @@ impl MissionController {
                                 drop(chassis_lock);
                                 sleep(SHORT_SLEEP).await;
                             }
-                            navigation_computer.stop_moving().await;
+                            navigation_computer.stop_moving(chassis.clone()).await;
                             chassis_lock = chassis.lock().await;
                             chassis_lock.stop_motors();
                             drop(chassis_lock);
@@ -216,10 +217,10 @@ impl MissionController {
 
                 keep_loop_going = *go.lock().await;
             }
-            navigation_computer.stop_moving().await;
+            navigation_computer.stop_moving(chassis_clone.clone()).await;
             navigation_computer.kill().await;
             nav_computer_handle.await.unwrap();
-            let mut chassis_lock = chassis.lock().await;
+            let mut chassis_lock = chassis_clone.lock().await;
             chassis_lock.stop_motors();
             chassis_lock.retrieve_rack();
             let mut is_dt_inserted = false;
@@ -263,7 +264,7 @@ impl MissionController {
             drop(chassis_lock);
             sleep(SHORT_SLEEP).await;
         }
-        navigation_computer.stop_moving().await;
+        navigation_computer.stop_moving(chassis.clone()).await;
         chassis_lock = chassis.lock().await;
         chassis_lock.stop_motors();
         drop(chassis_lock);

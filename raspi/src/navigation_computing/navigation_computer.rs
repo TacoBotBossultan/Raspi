@@ -102,8 +102,20 @@ impl NavigationComputer {
         *self.keep_going.lock().await = false;
     }
 
-    pub async fn stop_moving(&self) {
+    pub async fn stop_moving(&self, chassis: Arc<sync::Mutex<RealChassis>>) {
+        loop {
+            let mut chassis_lock = chassis.lock().await;
+            *self.current_position.lock().await = match (*chassis_lock).get_position() {
+                Ok(pos) => pos,
+                Err(err) => {
+                    println!("{}", err);
+                    continue;
+                }
+            };
+            break;
+        }
         let curr_pos = self.current_position.lock().await;
+        println!("pozitia curenta e : {curr_pos:#?}");
         *self.target_position.lock().await = curr_pos.clone();
     }
 
