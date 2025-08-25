@@ -11,7 +11,7 @@ use std::{
     sync::Arc,
 };
 
-use stimulator::{
+use raspi::{
     chassis::{
         chassis_traits::{MotorIndex, Position},
         simulated_chassis::SimulatedChassis,

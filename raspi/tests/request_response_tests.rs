@@ -72,8 +72,8 @@ fn deser_define_home_request() {
     let req: Requests = match serde_json::from_str(req) {
         Ok(req) => req,
         Err(e) => {
-            panic!("Vezi ca nu s-a deser frumus {e:#?}");
         }
+        panic!("Vezi ca nu s-a deser frumus {e:#?}");
     };
 
     assert_eq!(req, Requests::DefineHome(DefineHome::new(200, 200, 90)));

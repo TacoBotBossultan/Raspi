@@ -1,0 +1,15 @@
+[start]
+x = 200
+y = 200
+orientation = 90
+
+[target]
+x = 100
+y = 100
+orientation = 0
+
+[motor_efficiencies]
+front_right = 10
+front_left = 10
+back_left = 10
+back_right = 10
