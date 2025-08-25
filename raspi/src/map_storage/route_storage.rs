@@ -336,7 +336,7 @@ impl MapStorage {
         self.position_storage.store_position(&position);
     }
 
-    pub fn compute_route_from_start(
+    pub fn compute_route_from_start_request(
         &mut self,
         start_position: Position,
         route_request: StoreRouteRequest,
