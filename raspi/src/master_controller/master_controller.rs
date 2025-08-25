@@ -166,15 +166,19 @@ impl MasterController {
                 async_logger
                     .out_print(format!("{PRE_APPEND_STR} Defining home: "))
                     .await;
-                map_storage.store_position(
-                    Position::create(
-                        Some("Home".to_string()),
-                        home_coords.get_x(),
-                        home_coords.get_y(),
-                        home_coords.get_theta(),
-                    )
-                    .unwrap(),
-                );
+                let home_position = Position::create(
+                    Some("Home".to_string()),
+                    home_coords.get_x(),
+                    home_coords.get_y(),
+                    home_coords.get_theta(),
+                )
+                .unwrap();
+                map_storage.store_position(home_position.clone());
+                let chassis_lock = chassis.lock();
+                chassis_lock.await.set_position(home_position);
+                drop(chassis_lock);
+                nav_computer.stop_moving().await;
+
                 Responses::GeneralResponse(responses::GeneralResponse {
                     status: 200,
                     message: "OK".to_string(),
