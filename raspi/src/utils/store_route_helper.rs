@@ -4,7 +4,7 @@ use super::super::{
     chassis::chassis_traits::Position,
     map_storage::route_storage::{MapStorage, RouteKey},
     navigation_computing::nav_computer_states::{Direction, DirectionMove},
-    request_response::requests::StoreRoute,
+    request_response::requests::StoreRouteRequest,
 };
 
 pub struct StoreRouteHelper {
@@ -28,7 +28,7 @@ impl StoreRouteHelper {
 
         let route_vecdeque = Self::route_arr_to_vecdeque(directions_arr);
 
-        let route_request = StoreRoute::new(start_name, route_vecdeque, destination_name);
+        let route_request = StoreRouteRequest::new(start_name, route_vecdeque, destination_name);
 
         self.map_storage.store_route(&route_request)
     }

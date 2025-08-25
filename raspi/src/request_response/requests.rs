@@ -6,14 +6,14 @@ use serde::Deserialize;
 use std::{collections::VecDeque, fmt::Debug};
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct Photo;
+pub struct PhotoRequest;
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct State;
+pub struct StateReqest;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-pub struct StoreRoute {
+pub struct StoreRouteRequest {
     start_position_name: String,
     route: VecDeque<DirectionMove>,
     destination_position_name: String,
@@ -26,7 +26,7 @@ pub struct MissionRequest {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct DefineHome {
+pub struct DefineHomeRequest {
     home_x: i32,
     home_y: i32,
     home_theta: u16,
@@ -47,46 +47,46 @@ pub enum RouteType {
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, PartialEq)]
 pub enum Requests {
-    Photo(Photo),
-    State(State),
-    StoreRoute(StoreRoute),
+    PhotoReqest(PhotoRequest),
+    StateReqest(StateReqest),
+    StoreRouteRequest(StoreRouteRequest),
     MissionRequest(MissionRequest),
-    DefineHome(DefineHome),
+    DefineHomeRequest(DefineHomeRequest),
 }
-impl Photo {
-    pub fn new() -> Photo {
+impl PhotoRequest {
+    pub fn new() -> PhotoRequest {
         print!("Photo Request!");
-        Photo
+        PhotoRequest
     }
 }
 
-impl Default for Photo {
+impl Default for PhotoRequest {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl State {
-    pub fn new() -> State {
+impl StateReqest {
+    pub fn new() -> StateReqest {
         print!("State Request!");
-        State
+        StateReqest
     }
 }
 
-impl Default for State {
+impl Default for StateReqest {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl StoreRoute {
+impl StoreRouteRequest {
     pub fn new(
         start_position_name: String,
         route: VecDeque<DirectionMove>,
         destination_position_name: String,
-    ) -> StoreRoute {
+    ) -> StoreRouteRequest {
         print!("Store Route Request!");
-        StoreRoute {
+        StoreRouteRequest {
             start_position_name,
             route,
             destination_position_name,
@@ -104,10 +104,10 @@ impl StoreRoute {
     }
 }
 
-impl DefineHome {
-    pub fn new(home_x: i32, home_y: i32, home_theta: u16) -> DefineHome {
+impl DefineHomeRequest {
+    pub fn new(home_x: i32, home_y: i32, home_theta: u16) -> DefineHomeRequest {
         print!("Define Home Request!");
-        DefineHome {
+        DefineHomeRequest {
             home_x,
             home_y,
             home_theta,

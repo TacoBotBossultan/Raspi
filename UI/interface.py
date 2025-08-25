@@ -14,7 +14,7 @@ PORT = 8080
 
 
 def send_photo_request_and_save_photo(sock):
-    req = {"Photo": None}
+    req = {"PhotoRequest": None}
     req_ser = json.dumps(req)
 
     photo_path = "~/Raspi_Official/UI/received_image.jpg"
@@ -258,7 +258,7 @@ class DefineHomePage(tk.Frame):
                 "home_y": y_text,
                 "home_theta": theta_text,
             }
-            define_home_request = {"DefineHome": coordinates_dict}
+            define_home_request = {"DefineHomeRequest": coordinates_dict}
             send_general_request(s, define_home_request, 1024)
             time.sleep(1)
 
@@ -409,7 +409,7 @@ class StoreRoutePage(tk.Frame):
                 "route": route_list,
                 "destination_position_name": destination_position_text,
             }
-            store_route_request = {"StoreRoute": route_dict}
+            store_route_request = {"StoreRouteRequest": route_dict}
 
             send_general_request(s, store_route_request, 1024)
             time.sleep(1)

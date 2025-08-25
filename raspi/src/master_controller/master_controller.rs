@@ -131,7 +131,7 @@ impl MasterController {
         nav_computer: Arc<NavigationComputer>,
     ) -> Responses {
         match request {
-            Requests::State(_) => {
+            Requests::StateReqest(_) => {
                 // deocamdata sigur nu face nimic (mirel state gen lmao)
                 let state_response = responses::StateResponse { state: robot_state };
                 async_logger
@@ -142,7 +142,7 @@ impl MasterController {
                 Responses::StateResponse(state_response)
             }
 
-            Requests::Photo(_) => {
+            Requests::PhotoReqest(_) => {
                 // un vector random cu "datele de poza"
                 //TODO: fa de aici direct poza
                 async_logger
@@ -162,7 +162,7 @@ impl MasterController {
                 Responses::PhotoResponse(photo_response)
             }
 
-            Requests::DefineHome(home_coords) => {
+            Requests::DefineHomeRequest(home_coords) => {
                 async_logger
                     .out_print(format!("{PRE_APPEND_STR} Defining home: "))
                     .await;
@@ -184,7 +184,7 @@ impl MasterController {
                     message: "OK".to_string(),
                 })
             }
-            Requests::StoreRoute(stored_route) => {
+            Requests::StoreRouteRequest(stored_route) => {
                 async_logger
                     .out_print(format!("{PRE_APPEND_STR} Storeuieste Routa"))
                     .await;

@@ -3,7 +3,7 @@ use raspi::{
     navigation_computing::nav_computer_states::Direction::{Forward, Right, RotateLeft},
     utils::store_route_helper::StoreRouteHelper,
     request_response::{
-        requests::{DefineHome, MissionRequest, Photo, Requests, State, StoreRoute},
+        requests::{DefineHomeRequest, MissionRequest, PhotoRequest, Requests, StateReqest, StoreRouteRequest},
         responses::{
             GeneralResponse, PhotoResponse, Responses,
             RobotStates::{Busy, Free},
@@ -32,7 +32,7 @@ fn deser_photo_request() {
         }
     };
 
-    assert_eq!(req, Requests::Photo(Photo::new()));
+    assert_eq!(req, Requests::PhotoReqest(PhotoRequest::new()));
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn deser_robot_state_request() {
         }
     };
 
-    assert_eq!(req, Requests::State(State::new()));
+    assert_eq!(req, Requests::StateReqest(StateReqest::new()));
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn deser_define_home_request() {
         panic!("Vezi ca nu s-a deser frumus {e:#?}");
     };
 
-    assert_eq!(req, Requests::DefineHome(DefineHome::new(200, 200, 90)));
+    assert_eq!(req, Requests::DefineHomeRequest(DefineHomeRequest::new(200, 200, 90)));
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn deser_store_route_request() {
 
     assert_eq!(
         req,
-        Requests::StoreRoute(StoreRoute::new(
+        Requests::StoreRouteRequest(StoreRouteRequest::new(
             "Home".to_string(),
             StoreRouteHelper::route_arr_to_vecdeque(route),
             "acolo".to_string()

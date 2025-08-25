@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::chassis::chassis_traits::Position;
 use crate::navigation_computing::nav_computer_states::{Direction, DirectionMove};
-use crate::request_response::requests::StoreRoute;
+use crate::request_response::requests::StoreRouteRequest;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -339,7 +339,7 @@ impl MapStorage {
     pub fn compute_route_from_start(
         &mut self,
         start_position: Position,
-        route_request: StoreRoute,
+        route_request: StoreRouteRequest,
     ) -> Result<Vec<Position>, String> {
         let mut positions_vector: Vec<Position> = Vec::new();
         let mut current_position = start_position.clone();
@@ -376,7 +376,7 @@ impl MapStorage {
     pub fn compute_route_from_end(
         &mut self,
         end_position: Position,
-        route_request: StoreRoute,
+        route_request: StoreRouteRequest,
     ) -> Result<Vec<Position>, String> {
         let mut positions_vector: Vec<Position> = Vec::new();
         let mut current_position = end_position.clone();
@@ -409,7 +409,7 @@ impl MapStorage {
         Ok(positions_vector)
     }
 
-    pub fn store_route(&mut self, route_request: &StoreRoute) -> Result<String, String> {
+    pub fn store_route(&mut self, route_request: &StoreRouteRequest) -> Result<String, String> {
         if route_request.get_route().is_empty() {
             return Err("Invalid route.".to_string());
         }
