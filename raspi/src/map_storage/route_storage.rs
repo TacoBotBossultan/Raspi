@@ -287,7 +287,6 @@ impl Default for PositionStorage {
     }
 }
 
-//TODO : sa folosesti asta ca routa in misiune
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 pub struct RouteKey {
     start_name: String,
