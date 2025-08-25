@@ -1,9 +1,9 @@
-use raspi::{
-    navigation_computing::nav_computer_states::Direction::{
-        Backward, Forward, Left, Right, RotateLeft, RotateRight,
-    },
-    utils::store_route_helper::StoreRouteHelper,
+use raspi::navigation_computing::nav_computer_states::Direction::{
+    Backward, Forward, Left, Right, RotateLeft, RotateRight,
 };
+
+mod store_route_helper;
+use store_route_helper::StoreRouteHelper;
 
 #[test]
 fn rotate_left_route() {
