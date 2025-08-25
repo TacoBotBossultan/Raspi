@@ -274,7 +274,9 @@ impl MasterController {
                             ));
                         }
                     }
-                    RouteType::RelativeMovement(direction_moves) => {}
+                    RouteType::RelativeMovement(direction_moves) => {
+                        todo!()
+                    }
                 }
 
                 if mission_sender.send(executable_mission).await.is_err() {

@@ -8,7 +8,10 @@ use tokio::{
 use raspi::{
     chassis::simulated_chassis::SimulatedChassis,
     master_controller::master_controller::{Command, MasterController},
-    mission_controller::mission_controller::MissionController,
+    mission_controller::{
+        mission_controller::MissionController,
+        missions::{ExecutableMission, MissionStatus},
+    },
     navigation_computing::navigation_computer::NavigationComputer,
     request_response::requests::Requests,
     utils::{
@@ -31,26 +34,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let async_logger = AsyncLogger::new(stdout_mutex, stderr_mutex);
 
     let (master_controller_command_sender, command_receiver) = mpsc::channel(32);
-    let (mission_sender, mission_receiver) = mpsc::channel(8);
-    let (status_sender, status_receiver) = mpsc::channel(8);
+    let (mission_sender, mission_receiver) = mpsc::channel::<ExecutableMission>(2);
+    let (status_sender, mut status_receiver) = mpsc::channel::<MissionStatus>(2);
 
-    let master_controller = MasterController::new(
-        command_receiver,
-        mission_sender,
-        status_receiver,
-        async_logger.clone(),
-    );
+    let master_controller = MasterController::new();
 
-    tokio::spawn(async move {
-        master_controller.run().await;
-    });
+    // tokio::spawn(async move {
+    //     master_controller.run().await;
+    // });
 
-    let mission_controller =
-        MissionController::new(mission_receiver, status_sender, async_logger.clone());
+    let mission_controller = MissionController::new(async_logger.clone());
 
-    tokio::spawn(async move {
-        mission_controller.run().await;
-    });
+    // tokio::spawn(async move {
+    //     mission_controller
+    //         .run(
+    //             mission_receiver,
+    //             status_sender,
+    //             Arc::clone(&navigation_computer),
+    //             Arc::clone(&chassis),
+    //         )
+    //         .await;
+    // });
 
     let listener = TcpListener::bind("127.0.0.1:8080").await?;
     async_logger

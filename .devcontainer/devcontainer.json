@@ -2,6 +2,7 @@
 {
   "name": "Rust Development Environment",
   "image": "mcr.microsoft.com/devcontainers/rust:1-bookworm",
+  
   "features": {
     // Optionally add features here, for example, 'git' or 'zsh'
     // "ghcr.io/devcontainers/features/common-utils:2": {
@@ -9,11 +10,13 @@
     //   "configureZshAsDefaultShell": true
     // }
   },
+
   "postCreateCommand": {
     // Optional: Install additional tools after the container is created.
     // This command installs libudev-dev, which is often needed for embedded or hardware projects.
     "install_dependencies": "sudo apt-get update && sudo apt-get install -y libudev-dev"
   },
+  
   "customizations": {
     "vscode": {
       "settings": {
@@ -29,3 +32,4 @@
     }
   }
 }
+

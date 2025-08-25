@@ -127,25 +127,25 @@ async fn main() {
 
     sleep(Duration::from_secs(1)).await;
     execute!(stdout(), Hide).unwrap();
-    let join_handle = navigation_computer.clone().start(chassis.clone());
-    println!("Running simulation, press q or x to quit...");
-    let read_duration = Duration::from_millis(KBRD_READ_TIME);
-    loop {
-        if poll(read_duration).unwrap() {
-            if let Event::Key(event) = read().unwrap() {
-                if let KeyCode::Char('q') | KeyCode::Char('x') = event.code {
-                    clear_screen_and_return_to_zero();
-                    println!("Quitting.");
-                    navigation_computer.stop().await;
-                    let _ = join_handle.await;
-                    sleep(Duration::from_millis(250)).await;
-                    clear_screen_and_return_to_zero();
-                    execute!(stdout(), Show).unwrap();
-                    break;
-                }
-            }
-        }
-    }
+    // let join_handle = navigation_computer.clone().start(chassis.clone());
+    // println!("Running simulation, press q or x to quit...");
+    // let read_duration = Duration::from_millis(KBRD_READ_TIME);
+    // loop {
+    //     if poll(read_duration).unwrap() {
+    //         if let Event::Key(event) = read().unwrap() {
+    //             if let KeyCode::Char('q') | KeyCode::Char('x') = event.code {
+    //                 clear_screen_and_return_to_zero();
+    //                 println!("Quitting.");
+    //                 navigation_computer.stop().await;
+    //                 let _ = join_handle.await;
+    //                 sleep(Duration::from_millis(250)).await;
+    //                 clear_screen_and_return_to_zero();
+    //                 execute!(stdout(), Show).unwrap();
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 fn read_from_input<T: FromStr>() -> T {
@@ -227,9 +227,9 @@ async fn read_set_and_save_chassis_and_target_from_keyboard(
     let target_config: TargetConfig;
 
     println!("Please input the target X coordinate:");
-    let target_x = read_from_input::<u32>();
+    let target_x = read_from_input::<i32>();
     println!("Please input the target Y coordinate:");
-    let target_y = read_from_input::<u32>();
+    let target_y = read_from_input::<i32>();
     loop {
         println!("Please input the target orientation:");
         let target_orientation = read_from_input::<u16>();
@@ -246,16 +246,17 @@ async fn read_set_and_save_chassis_and_target_from_keyboard(
         }
     }
 
-    let mut file = fs::File::new(CONFIG_FILE_PATH).unwrap();
-    let _ = file.write_all(
-        toml::to_string_pretty(&Config::new(
-            start_config,
-            target_config,
-            motor_efficiencies,
-        ))
-        .unwrap()
-        .as_bytes(),
-    );
+    // let mut file = fs::File::create_newx(CONFIG_FILE_PATH).unwrap();
+    //
+    // let _ = file.write_all(
+    //     toml::to_string_pretty(&Config::new(
+    //         start_config,
+    //         target_config,
+    //         motor_efficiencies,
+    //     ))
+    //     .unwrap()
+    //     .as_bytes(),
+    // );
 }
 
 async fn set_chassis_and_target_from_config(

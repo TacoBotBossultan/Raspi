@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::chassis::chassis_traits::Position;
 use crate::navigation_computing::nav_computer_states::{Direction, DirectionMove};
 use crate::request_response::requests::StoreRouteRequest;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt::Debug;
 
 pub fn move_to_next_position(
@@ -230,6 +230,8 @@ impl PositionStorage {
         }
     }
 
+    pub fn store_positons(&mut self, positions: Vec<&Position>) {}
+
     pub fn store_position(&mut self, position: &Position) {
         self.positions.push(position.clone());
     }
@@ -336,18 +338,18 @@ impl MapStorage {
         self.position_storage.store_position(&position);
     }
 
-    pub fn compute_route_from_start_request(
+    pub fn compute_route_from_start(
         &mut self,
         start_position: Position,
-        route_request: StoreRouteRequest,
+        mut route: VecDeque<DirectionMove>,
+        destination_name: Option<String>,
     ) -> Result<Vec<Position>, String> {
-        let mut positions_vector: Vec<Position> = Vec::new();
         let mut current_position = start_position.clone();
+        let mut positions_vector: Vec<Position> = Vec::new();
         positions_vector.push(start_position.clone());
-        let mut route_request_vector = route_request.get_route().clone();
 
-        while !route_request_vector.is_empty() {
-            let current_direction_move = match route_request_vector.pop_front() {
+        while !route.is_empty() {
+            let current_direction_move = match route.pop_front() {
                 Some(dir_move) => dir_move,
                 None => {
                     return Err("Invalid direction move".to_string());
@@ -360,17 +362,34 @@ impl MapStorage {
                         return Err(output);
                     }
                 };
-            if route_request_vector.is_empty() {
-                next_position.set_position_name(route_request.get_destination_position_name());
-            }
-            self.position_storage.store_position(&next_position);
-            if next_position.get_position_name().is_some() {
-                self.position_storage.store_position(&next_position);
-            }
             positions_vector.push(next_position.clone());
             current_position = next_position;
         }
+        if let Some(last_position) = positions_vector.last() {
+            let mut last_pos_final: &mut Position;
+            if destination_name.is_some() {
+                let mut last_pos_clone = last_position.clone();
+                last_pos_final = &mut last_pos_clone;
+                last_pos_final.set_position_name(destination_name.unwrap());
+            }
+            self.position_storage.store_position(last_position);
+        } else {
+            return Err("E goala lista asta de pozitii!".to_string());
+        }
         Ok(positions_vector)
+    }
+
+    pub fn compute_route_from_start_request(
+        &mut self,
+        start_position: Position,
+        route_request: StoreRouteRequest,
+    ) -> Result<Vec<Position>, String> {
+        let mut route_request_vector = route_request.get_route().clone();
+        return self.compute_route_from_start(
+            start_position,
+            route_request_vector,
+            Some(route_request.get_destination_position_name()),
+        );
     }
 
     pub fn compute_route_from_end_request(
@@ -397,12 +416,15 @@ impl MapStorage {
                         return Err(output);
                     }
                 };
+
             if route_request_vector.is_empty() {
                 prev_position.set_position_name(route_request.get_start_position_name());
             }
+
             if prev_position.get_position_name().is_some() {
                 self.position_storage.store_position(&prev_position);
             }
+
             positions_vector.insert(0, prev_position.clone());
             current_position = prev_position;
         }
@@ -421,6 +443,7 @@ impl MapStorage {
 
         let start_position: Position;
         let end_position: Position;
+
         let mut positions_vector: Vec<Position> = Vec::new();
         if self
             .position_storage
