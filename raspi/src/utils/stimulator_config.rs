@@ -15,21 +15,21 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct StartConfig {
-    x: u32,
-    y: u32,
+    x: i32,
+    y: i32,
     orientation: u16,
 }
 
 impl StartConfig {
-    pub fn new(x: u32, y: u32, orientation: u16) -> Self {
+    pub fn new(x: i32, y: i32, orientation: u16) -> Self {
         Self { x, y, orientation }
     }
 
-    pub fn set_x(&mut self, x: u32) {
+    pub fn set_x(&mut self, x: i32) {
         self.x = x;
     }
 
-    pub fn set_y(&mut self, y: u32) {
+    pub fn set_y(&mut self, y: i32) {
         self.y = y;
     }
 
@@ -37,11 +37,11 @@ impl StartConfig {
         self.orientation = orientation;
     }
 
-    pub fn x(&self) -> u32 {
+    pub fn x(&self) -> i32 {
         self.x
     }
 
-    pub fn y(&self) -> u32 {
+    pub fn y(&self) -> i32 {
         self.y
     }
 
@@ -52,21 +52,21 @@ impl StartConfig {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct TargetConfig {
-    x: u32,
-    y: u32,
+    x: i32,
+    y: i32,
     orientation: u16,
 }
 
 impl TargetConfig {
-    pub fn new(x: u32, y: u32, orientation: u16) -> Self {
+    pub fn new(x: i32, y: i32, orientation: u16) -> Self {
         Self { x, y, orientation }
     }
 
-    pub fn set_x(&mut self, x: u32) {
+    pub fn set_x(&mut self, x: i32) {
         self.x = x;
     }
 
-    pub fn set_y(&mut self, y: u32) {
+    pub fn set_y(&mut self, y: i32) {
         self.y = y;
     }
 
@@ -74,11 +74,11 @@ impl TargetConfig {
         self.orientation = orientation;
     }
 
-    pub fn x(&self) -> u32 {
+    pub fn x(&self) -> i32 {
         self.x
     }
 
-    pub fn y(&self) -> u32 {
+    pub fn y(&self) -> i32 {
         self.y
     }
 

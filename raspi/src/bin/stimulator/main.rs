@@ -28,7 +28,7 @@ use raspi::{
 };
 
 use tokio::{
-    sync,
+    sync::{self, Mutex},
     time::{Duration, sleep},
 };
 
@@ -127,7 +127,7 @@ async fn main() {
 
     sleep(Duration::from_secs(1)).await;
     execute!(stdout(), Hide).unwrap();
-    let join_handle = navigation_computer.clone().start(Arc::clone(&chassis));
+    let join_handle = navigation_computer.clone().start(chassis.clone());
     println!("Running simulation, press q or x to quit...");
     let read_duration = Duration::from_millis(KBRD_READ_TIME);
     loop {
@@ -203,15 +203,15 @@ async fn read_set_and_save_chassis_and_target_from_keyboard(
     let start_config: StartConfig;
 
     println!("Please input the starting X coordinate:");
-    let start_x = read_from_input::<u32>();
+    let start_x = read_from_input::<i32>();
     println!("Please input the starting Y coordinate:");
-    let start_y = read_from_input::<u32>();
+    let start_y = read_from_input::<i32>();
     loop {
         println!("Please input the current orientation:");
 
         let start_orientation = read_from_input::<u16>();
 
-        match Position::create(None, start_x, start_y, start_orientation) {
+        match Position::new(None, start_x, start_y, start_orientation) {
             Ok(position) => match (*chassis.lock().await).set_position(position) {
                 Ok(output) => {
                     println!("{output:#?}");
@@ -233,7 +233,7 @@ async fn read_set_and_save_chassis_and_target_from_keyboard(
     loop {
         println!("Please input the target orientation:");
         let target_orientation = read_from_input::<u16>();
-        match Position::create(None, target_x, target_y, target_orientation) {
+        match Position::new(None, target_x, target_y, target_orientation) {
             Ok(position) => match navigation_computer.go_to_position(position).await {
                 Ok(output) => {
                     println!("{output:#?}");
@@ -246,7 +246,7 @@ async fn read_set_and_save_chassis_and_target_from_keyboard(
         }
     }
 
-    let mut file = fs::File::create(CONFIG_FILE_PATH).unwrap();
+    let mut file = fs::File::new(CONFIG_FILE_PATH).unwrap();
     let _ = file.write_all(
         toml::to_string_pretty(&Config::new(
             start_config,
@@ -266,7 +266,7 @@ async fn set_chassis_and_target_from_config(
     set_motor_efficiencies_from_config(chassis, &config).await;
 
     //start
-    match Position::create(
+    match Position::new(
         None,
         config.start().x(),
         config.start().y(),
@@ -282,7 +282,7 @@ async fn set_chassis_and_target_from_config(
     }
 
     //target
-    match Position::create(
+    match Position::new(
         None,
         config.target().x(),
         config.target().y(),

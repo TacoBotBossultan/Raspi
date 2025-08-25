@@ -1,9 +1,9 @@
-use stimulator::{
+use raspi::{
     mission_controller::missions::ActionType,
     navigation_computing::nav_computer_states::Direction::{Forward, Right, RotateLeft},
     utils::store_route_helper::StoreRouteHelper,
-    Request_Response::{
-        requests::{DefineHome, MissionReqest, Photo, Requests, State, StoreRoute},
+    request_response::{
+        requests::{DefineHome, MissionRequest, Photo, Requests, State, StoreRoute},
         responses::{
             GeneralResponse, PhotoResponse, Responses,
             RobotStates::{Busy, Free},
