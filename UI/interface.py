@@ -11,7 +11,6 @@ PORT = 8080
 
 
 def send_photo_request_and_save_photo(sock):
-    # dăi
     req = {"Photo": None}
     req_ser = json.dumps(req)
 
@@ -24,7 +23,6 @@ def send_photo_request_and_save_photo(sock):
     print("Vor astia poza...")
     sock.sendall(req_ser.encode("utf-8"))
 
-    # asteapta poza
     cnt = 0
     image_data = b""
     while True:
@@ -482,7 +480,7 @@ class GoToPositionPage(tk.Frame):
             }
             go_to_position_dict = {
                 "action": "GoToPosition",
-                "position": coordinates_dict,
+                "route": coordinates_dict,
             }
             go_to_position_request = {"MissionRequest": go_to_position_dict}
             send_general_request(s, go_to_position_request, 1024)
@@ -638,3 +636,20 @@ class RemoveRackPage(tk.Frame):
         self.x_entry.delete(0, tk.END)
         self.y_entry.delete(0, tk.END)
         self.theta_entry.delete(0, tk.END)
+
+
+class BeerMePage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.beer_me_btn = tk.Button(self, text="Beer me", command=self.on_beer_me)
+        self.beer_me_btn.grid(row=2, column=0, padx=10, pady=10)
+
+    def on_beer_me(self):
+        try:
+            beer_me_request = {"BeerMe": None}
+            send_general_request(s, beer_me_request, 1024)
+            time.sleep(1)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
