@@ -85,7 +85,6 @@ impl MissionController {
                         continue;
                     }
                     ActionType::TakePhoto => {
-                        // TODO:ceva cu poza, underline inainte de photo pentru warning
                         let mut chassis_lock = chassis.lock().await;
                         chassis_lock.on_led();
                         drop(chassis_lock);
