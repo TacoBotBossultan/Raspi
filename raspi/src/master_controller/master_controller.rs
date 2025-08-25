@@ -15,7 +15,7 @@ use crate::{
     navigation_computing::navigation_computer::NavigationComputer,
     request_response::{
         requests::{Requests, RouteType},
-        responses::{self, Responses, RobotStates},
+        responses::{self, GeneralResponse, Responses, RobotStates},
     },
     utils::logging::AsyncLogger,
 };
@@ -257,12 +257,12 @@ impl MasterController {
                             executable_mission =
                                 ExecutableMission::new(mission.action, vec![position]);
                         } else {
-                            return Responses::GeneralResponse::new(
+                            return Responses::GeneralResponse(GeneralResponse::new(
                                 400,
                                 format!(
                                     "Position x : {x_coordinate:#?}, y : {y_coordinate:#?}, theta : {theta:#?}"
                                 ),
-                            );
+                            ));
                         }
                     }
                     RouteType::RelativeMovement(direction_moves) => todo!(),
