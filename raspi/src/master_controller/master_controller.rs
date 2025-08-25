@@ -14,7 +14,7 @@ use crate::{
     },
     navigation_computing::navigation_computer::NavigationComputer,
     request_response::{
-        requests::Requests,
+        requests::{Requests, RouteType},
         responses::{self, Responses, RobotStates},
     },
     utils::logging::AsyncLogger,
@@ -240,8 +240,21 @@ impl MasterController {
                     });
                 }
 
-                let route = map_storage.get_route(&mission.route).unwrap();
-                let executable_mission = ExecutableMission::new(mission.action, route);
+                let executable_mission: ExecutableMission;
+
+                match mission.route {
+                    RouteType::RouteKey(route_key) => {
+                        let route = map_storage.get_route(&route_key).unwrap();
+                        executable_mission = ExecutableMission::new(mission.action, route);
+                    }
+                    RouteType::AbsolutePosition {
+                        x_coordinate,
+                        y_coordinate,
+                        theta,
+                    } => todo!(),
+                    RouteType::RelativeMovement(direction_moves) => todo!(),
+                }
+
                 if mission_sender.send(executable_mission).await.is_err() {
                     async_logger.err_print(format!(
                             "{PRE_APPEND_STR:#?} eroare la trimiterea misiunii catre mission controller"

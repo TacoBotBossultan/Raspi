@@ -84,7 +84,6 @@ impl MissionController {
                             .await;
                         continue;
                     }
-
                     ActionType::TakePhoto => {
                         // TODO:ceva cu poza, underline inainte de photo pentru warning
                         let mut chassis_lock = chassis.lock().await;
@@ -99,7 +98,6 @@ impl MissionController {
                             .await;
                         continue;
                     }
-
                     ActionType::InsertRack { lane_number } => {
                         if !self.dock(&navigation_computer, &chassis).await {
                             continue;
@@ -154,7 +152,6 @@ impl MissionController {
                             .out_print(format!("{PRE_APPEND_STR} SI dau insert la rack"))
                             .await;
                     }
-
                     ActionType::RemoveRack { lane_number } => {
                         if !self.dock(&navigation_computer, &chassis).await {
                             continue;
@@ -201,6 +198,7 @@ impl MissionController {
                             .out_print(format!("{PRE_APPEND_STR} Si scot un rack"))
                             .await;
                     }
+                    ActionType::BeerMe => todo!(),
                 };
 
                 self.async_logger
