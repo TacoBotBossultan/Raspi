@@ -27,6 +27,7 @@ pub enum ActionType {
     InsertRack { lane_number: u8 },
     RemoveRack { lane_number: u8 },
     TakePhoto,
+    BeerMe,
 }
 
 #[derive(Debug, Clone)]
