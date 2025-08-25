@@ -5,6 +5,9 @@ import socket
 import time
 import json
 import os
+from PIL import Image, ImageTk
+from tkinter import Toplevel
+import io
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -45,6 +48,19 @@ def send_photo_request_and_save_photo(sock):
     with open("received_image.jpg", "wb") as f:
         f.write(bytes(response_data["PhotoResponse"]["photo_data"]))
     print("Image received and saved successfully.")
+    img_bytes = bytes(response_data)
+    image = Image.open(io.BytesIO(img_bytes))
+
+    # Create a new window
+    new_window = Toplevel()
+    new_window.title("Received Image")
+
+    # Convert to PhotoImage
+    tk_image = ImageTk.PhotoImage(image)
+
+    # Display in Label
+    label = tk.Label(new_window, image=tk_image)
+    label.pack()
 
 
 def send_general_request(sock, request_data, receive_size) -> dict | None:
@@ -463,6 +479,7 @@ class TakePhotoPage(tk.Frame):
     def on_take_photo(self):
         try:
             send_photo_request_and_save_photo(s)
+
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
 
